@@ -94,16 +94,24 @@ export function transporCifra(cifra: string, semitons: number): string {
   
   const linhas = cifra.split('\n');
   const linhasTranspostas = linhas.map(linha => {
-    // Se for uma linha de tablatura, transpor os números
+    // Se for uma linha de tablatura, transpor os números mas NÃO as letras das cordas
     if (isTabLine(linha)) {
       return transposeTabLine(linha, semitons);
     }
     
-    // Para todas as linhas, transpor acordes identificados
-    // Padrão mais abrangente para identificar acordes no meio do texto
-    return linha.replace(/\b([A-G][#b]?(?:m|dim|aug|sus[24]?|add[0-9]|[0-9]+|M|maj|min)*(?:\/[A-G][#b]?)?)\b/g, (match, acorde) => {
-      // Verificar se realmente é um acorde e não uma palavra comum
-      if (/^[A-G][#b]?/.test(acorde)) {
+    // Para todas as outras linhas, transpor acordes identificados
+    // Regex mais restritivo para evitar alterar palavras comuns
+    return linha.replace(/\b([A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+)?(?:\/[A-G][#b]?)?)\b/g, (match, acorde) => {
+      // Verificações adicionais para garantir que é realmente um acorde
+      // Não transpor se for parte de uma palavra maior ou se estiver em contextos específicos
+      if (
+        // Deve começar com uma nota
+        /^[A-G][#b]?/.test(acorde) &&
+        // Não deve ser uma palavra comum que termina com nota musical
+        !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves)/i.test(match) &&
+        // Deve ter o padrão de um acorde
+        acorde.length >= 1 && acorde.length <= 10
+      ) {
         return transpAcorde(acorde, semitons);
       }
       return match;

@@ -103,9 +103,10 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     // Para linhas mistas (acordes + letra), destacar acordes no meio do texto
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug">
-        {l.split(/(\b[A-G][#b]?(?:m|dim|aug|sus[24]?|add[0-9]|[0-9]+|M|maj|min)*(?:\/[A-G][#b]?)?\b)/).map((part, j) => {
+        {l.split(/(\b[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+)?(?:\/[A-G][#b]?)?)\b/).map((part, j) => {
           // Se a parte é um acorde, destacar
-          if (/^[A-G][#b]?(?:m|dim|aug|sus[24]?|add[0-9]|[0-9]+|M|maj|min)*(?:\/[A-G][#b]?)?$/.test(part) && part.trim()) {
+          if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+)?(?:\/[A-G][#b]?)?$/.test(part) && part.trim() && 
+              !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves)/i.test(part)) {
             return (
               <span
                 key={j}
