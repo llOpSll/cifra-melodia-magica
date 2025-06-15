@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CifraTransposer } from "../components/CifraTransposer";
@@ -21,26 +20,36 @@ export default function CifraVisualizar() {
   function handleDelete() {
     if (!cifra) return;
     
-    // Verificar se é uma cifra de arquivo (read-only)
+    // Verificar se é uma cifra de arquivo
     if (cifra.id.startsWith('file-')) {
-      toast({
-        title: "Esta cifra não pode ser excluída",
-        description: "Cifras do diretório CIFRAS/ são somente leitura.",
-      });
-      return;
-    }
-    
-    if (confirm(`Tem certeza que deseja excluir a cifra "${cifra.titulo}"?`)) {
-      const sucesso = deletarCifra(cifra.id);
-      if (sucesso) {
-        toast({
-          title: "Cifra excluída com sucesso!",
-        });
-        navigate("/");
-      } else {
-        toast({
-          title: "Erro ao excluir a cifra.",
-        });
+      if (confirm(`Tem certeza que deseja EXCLUIR PERMANENTEMENTE a cifra "${cifra.titulo}"? Esta ação não pode ser desfeita.`)) {
+        const sucesso = deletarCifra(cifra.id);
+        if (sucesso) {
+          toast({
+            title: "Cifra excluída permanentemente!",
+            description: "A cifra foi removida do sistema.",
+          });
+          navigate("/");
+        } else {
+          toast({
+            title: "Erro ao excluir a cifra.",
+          });
+        }
+      }
+    } else {
+      // Cifra do localStorage
+      if (confirm(`Tem certeza que deseja excluir a cifra "${cifra.titulo}"?`)) {
+        const sucesso = deletarCifra(cifra.id);
+        if (sucesso) {
+          toast({
+            title: "Cifra excluída com sucesso!",
+          });
+          navigate("/");
+        } else {
+          toast({
+            title: "Erro ao excluir a cifra.",
+          });
+        }
       }
     }
   }
@@ -161,6 +170,13 @@ export default function CifraVisualizar() {
                   >
                     <EyeOff size={17} />
                     Ocultar
+                  </button>
+                  <button
+                    className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow bg-red-600 hover:bg-red-700"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 size={17} />
+                    Excluir Permanentemente
                   </button>
                 </>
               ) : (

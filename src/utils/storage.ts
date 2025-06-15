@@ -23,6 +23,7 @@ export interface Repertorio {
 const CIFRAS_KEY = 'cifras_app_cifras';
 const REPERTORIOS_KEY = 'cifras_app_repertorios';
 const CIFRAS_OCULTAS_KEY = 'cifras_app_cifras_ocultas'; // Nova chave para cifras ocultas
+const CIFRAS_EXCLUIDAS_KEY = 'cifras_app_cifras_excluidas'; // Nova chave para cifras excluídas permanentemente
 
 // Importar a função para carregar cifras dos arquivos
 import { loadCifrasFromFiles } from './fileReader';
@@ -62,20 +63,61 @@ export function mostrarCifra(id: string): boolean {
   return true;
 }
 
+// Funções para cifras excluídas permanentemente
+export function getCifrasExcluidas(): string[] {
+  try {
+    const data = localStorage.getItem(CIFRAS_EXCLUIDAS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function excluirCifraPermanentemente(id: string): boolean {
+  if (!id.startsWith('file-')) return false; // Só permite excluir cifras de arquivo
+  
+  const cifrasExcluidas = getCifrasExcluidas();
+  if (!cifrasExcluidas.includes(id)) {
+    cifrasExcluidas.push(id);
+    localStorage.setItem(CIFRAS_EXCLUIDAS_KEY, JSON.stringify(cifrasExcluidas));
+  }
+  
+  // Também remover das cifras ocultas se estiver lá
+  mostrarCifra(id);
+  
+  return true;
+}
+
+export function restaurarCifraExcluida(id: string): boolean {
+  const cifrasExcluidas = getCifrasExcluidas();
+  const cifrasExcluidasFiltradas = cifrasExcluidas.filter(cId => cId !== id);
+  
+  if (cifrasExcluidas.length === cifrasExcluidasFiltradas.length) return false;
+  
+  localStorage.setItem(CIFRAS_EXCLUIDAS_KEY, JSON.stringify(cifrasExcluidasFiltradas));
+  return true;
+}
+
 export function getCifras(): Cifra[] {
   try {
     const data = localStorage.getItem(CIFRAS_KEY);
     const cifrasLocalStorage = data ? JSON.parse(data) : [];
     const cifrasOcultas = getCifrasOcultas();
+    const cifrasExcluidas = getCifrasExcluidas();
     
-    // Filtrar cifras ocultas das cifras dos arquivos
-    const cifrasArquivosVisiveis = cifrasFromFiles.filter(c => !cifrasOcultas.includes(c.id));
+    // Filtrar cifras ocultas e excluídas das cifras dos arquivos
+    const cifrasArquivosVisiveis = cifrasFromFiles.filter(c => 
+      !cifrasOcultas.includes(c.id) && !cifrasExcluidas.includes(c.id)
+    );
     
-    // Combinar cifras do localStorage com cifras dos arquivos (exceto ocultas)
+    // Combinar cifras do localStorage com cifras dos arquivos (exceto ocultas e excluídas)
     return [...cifrasArquivosVisiveis, ...cifrasLocalStorage];
   } catch {
     const cifrasOcultas = getCifrasOcultas();
-    return cifrasFromFiles.filter(c => !cifrasOcultas.includes(c.id));
+    const cifrasExcluidas = getCifrasExcluidas();
+    return cifrasFromFiles.filter(c => 
+      !cifrasOcultas.includes(c.id) && !cifrasExcluidas.includes(c.id)
+    );
   }
 }
 
@@ -151,11 +193,12 @@ export function atualizarCifra(id: string, dados: Partial<Omit<Cifra, 'id' | 'cr
 }
 
 export function deletarCifra(id: string): boolean {
-  // Só permite deletar cifras do localStorage (não dos arquivos)
+  // Para cifras de arquivo, usar exclusão permanente
   if (id.startsWith('file-')) {
-    return false; // Cifras dos arquivos são read-only
+    return excluirCifraPermanentemente(id);
   }
   
+  // Para cifras do localStorage, continuar com a lógica atual
   const cifrasLocalStorage = getCifrasFromLocalStorage();
   const cifrasFiltradas = cifrasLocalStorage.filter(c => c.id !== id);
   

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Download, Upload, FileText } from 'lucide-react';
+import { Download, Upload, FileText, Folder } from 'lucide-react';
 import { Button } from './ui/button';
 import { Cifra, getCifras, salvarCifra } from '../utils/storage';
 import { exportarCifra, exportarTodasCifras, importarCifra } from '../utils/fileOperations';
@@ -14,6 +14,7 @@ interface Props {
 
 export function FileOperations({ cifras, onCifrasUpdated }: Props) {
   const [importando, setImportando] = useState(false);
+  const [importandoDiretorio, setImportandoDiretorio] = useState(false);
 
   function handleExportarTodas() {
     if (cifras.length === 0) {
@@ -79,6 +80,69 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
     event.target.value = '';
   }
 
+  async function handleImportarDiretorio(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setImportandoDiretorio(true);
+    let sucessos = 0;
+    let erros = 0;
+
+    // Filtrar apenas arquivos .txt
+    const arquivosTxt = Array.from(files).filter(file => 
+      file.name.toLowerCase().endsWith('.txt')
+    );
+
+    if (arquivosTxt.length === 0) {
+      toast({
+        title: "Nenhum arquivo .txt encontrado",
+        description: "Selecione um diretório que contenha arquivos .txt",
+      });
+      setImportandoDiretorio(false);
+      return;
+    }
+
+    for (const file of arquivosTxt) {
+      try {
+        const cifra = await importarCifra(file);
+        const slug = slugify(`${cifra.artista}-${cifra.titulo}`, { lower: true, strict: true });
+        
+        salvarCifra({
+          artista: cifra.artista,
+          titulo: cifra.titulo,
+          instrumento: cifra.instrumento,
+          tom: cifra.tom,
+          cifra: cifra.cifra,
+          slug,
+          capotraste: cifra.capotraste
+        });
+        
+        sucessos++;
+      } catch (error) {
+        console.error('Erro ao importar arquivo:', file.name, error);
+        erros++;
+      }
+    }
+
+    setImportandoDiretorio(false);
+    
+    if (sucessos > 0) {
+      toast({
+        title: `${sucessos} cifra(s) importada(s) em massa!`,
+        description: erros > 0 ? `${erros} arquivo(s) falharam na importação.` : `De ${arquivosTxt.length} arquivos .txt encontrados.`,
+      });
+      onCifrasUpdated();
+    } else {
+      toast({
+        title: "Erro ao importar cifras",
+        description: "Verifique se os arquivos estão no formato correto.",
+      });
+    }
+
+    // Limpar input
+    event.target.value = '';
+  }
+
   return (
     <div className="flex flex-wrap gap-3 items-center">
       <Button
@@ -112,6 +176,32 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
           <label htmlFor="importar-cifras" className="cursor-pointer">
             <Upload size={16} />
             {importando ? 'Importando...' : 'Importar TXT'}
+          </label>
+        </Button>
+      </div>
+
+      <div className="relative">
+        <input
+          type="file"
+          multiple
+          accept=".txt"
+          onChange={handleImportarDiretorio}
+          disabled={importandoDiretorio}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          id="importar-diretorio"
+          webkitdirectory=""
+          directory=""
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+          disabled={importandoDiretorio}
+          asChild
+        >
+          <label htmlFor="importar-diretorio" className="cursor-pointer">
+            <Folder size={16} />
+            {importandoDiretorio ? 'Importando...' : 'Importar Diretório'}
           </label>
         </Button>
       </div>
