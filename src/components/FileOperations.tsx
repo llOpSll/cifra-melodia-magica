@@ -12,6 +12,12 @@ interface Props {
   onCifrasUpdated: () => void;
 }
 
+// Extend the input element type to include webkitdirectory
+interface DirectoryInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  webkitdirectory?: string;
+  directory?: string;
+}
+
 export function FileOperations({ cifras, onCifrasUpdated }: Props) {
   const [importando, setImportando] = useState(false);
   const [importandoDiretorio, setImportandoDiretorio] = useState(false);
@@ -182,15 +188,17 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
 
       <div className="relative">
         <input
-          type="file"
-          multiple
-          accept=".txt"
-          onChange={handleImportarDiretorio}
-          disabled={importandoDiretorio}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          id="importar-diretorio"
-          webkitdirectory=""
-          directory=""
+          {...({
+            type: "file",
+            multiple: true,
+            accept: ".txt",
+            onChange: handleImportarDiretorio,
+            disabled: importandoDiretorio,
+            className: "absolute inset-0 w-full h-full opacity-0 cursor-pointer",
+            id: "importar-diretorio",
+            webkitdirectory: "",
+            directory: ""
+          } as DirectoryInputProps)}
         />
         <Button
           variant="outline"
