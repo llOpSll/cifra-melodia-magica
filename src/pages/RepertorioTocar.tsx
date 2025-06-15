@@ -45,6 +45,8 @@ export default function RepertorioTocar() {
   }
 
   const cifraAtualObj = cifras[cifraAtual];
+  // Limpar o tom removendo qualquer "0" no final
+  const tomLimpo = cifraAtualObj.tom.replace(/0$/, '');
 
   return (
     <div className="min-h-screen font-sans" style={{ background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>
@@ -95,7 +97,7 @@ export default function RepertorioTocar() {
                style={{ backgroundColor: 'rgba(234, 239, 239, 0.9)', borderColor: '#B8CFCE' }}>
             <div className="mb-4">
               <div className="uppercase tracking-wide text-xs font-semibold mb-2" style={{ color: '#7F8CAA' }}>
-                {cifraAtualObj.instrumento} • Tom <span className="font-bold" style={{ color: '#333447' }}>{cifraAtualObj.tom}</span>
+                {cifraAtualObj.instrumento} • Tom <span className="font-bold" style={{ color: '#333447' }}>{tomLimpo}</span>
                 {cifraAtualObj.capotraste && cifraAtualObj.capotraste > 0 && (
                   <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifraAtualObj.capotraste}ª casa</span></>
                 )}
@@ -106,7 +108,7 @@ export default function RepertorioTocar() {
             
             <CifraTransposer
               cifra={cifraAtualObj.cifra}
-              tomOriginal={cifraAtualObj.tom}
+              tomOriginal={tomLimpo}
               fontSize={fontSize}
               capotrasteInicial={cifraAtualObj.capotraste || 0}
             />

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { transporCifra, transporTom } from "../utils/cifra";
 import { ArrowLeft, ArrowRight, Guitar, Hash } from "lucide-react";
