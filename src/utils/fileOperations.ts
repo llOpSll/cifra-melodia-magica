@@ -1,3 +1,4 @@
+
 import { Cifra } from './storage';
 
 // Função para exportar uma cifra como arquivo .txt
@@ -61,7 +62,7 @@ export function importarCifra(file: File): Promise<Cifra> {
         const instrumento = metadata.instrumento || 'Violão';
         const tom = metadata.tom || 'C';
         const capotraste = parseInt(metadata.capotraste || '0');
-        const bpm = parseInt(metadata.bpm || '0');
+        const bpm = metadata.bpm || '';
         const videoYoutube = metadata.videoyoutube || '';
 
         const agora = new Date().toISOString();
