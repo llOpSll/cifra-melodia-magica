@@ -7,11 +7,12 @@ type Props = {
   cifra: string;
   tomOriginal: string;
   fontSize: number;
+  capotrasteInicial?: number;
 };
 
-export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
+export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicial = 0 }: Props) {
   const [transposicao, setTransposicao] = useState(0);
-  const [capotraste, setCapotraste] = useState(0);
+  const [capotraste, setCapotraste] = useState(capotrasteInicial);
 
   function transpor(dir: number) {
     setTransposicao(prev => (prev + dir + 12) % 12);
@@ -68,18 +69,20 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
       );
     }
 
-    // Para outras linhas, destacar acordes entre colchetes
+    // Para outras linhas, destacar acordes entre colchetes e remover os colchetes na exibição
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace', fontSize: fontSize + "px" }}>
         {l.split(/(\[[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?\])/g).map((part, j) => {
-          // Se a parte é um acorde entre colchetes, destacar
+          // Se a parte é um acorde entre colchetes, destacar SEM os colchetes
           if (/^\[[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?\]$/i.test(part)) {
+            // Remove os colchetes para exibição
+            const acordeSemColchetes = part.slice(1, -1);
             return (
               <span
                 key={j}
                 className="font-bold text-green-700 bg-green-100/80 rounded px-1"
               >
-                {part}
+                {acordeSemColchetes}
               </span>
             );
           }
@@ -146,10 +149,10 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
         >
           <ArrowRight />
         </button>
-        {capotraste !== 0 && (
+        {capotraste !== capotrasteInicial && (
           <button
             className="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
-            onClick={() => setCapotraste(0)}
+            onClick={() => setCapotraste(capotrasteInicial)}
           >
             Reset
           </button>

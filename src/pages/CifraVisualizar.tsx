@@ -57,6 +57,9 @@ export default function CifraVisualizar() {
           <div>
             <div className="uppercase tracking-wide text-xs text-gray-400 font-semibold mb-2">
               {cifra.instrumento} • Tom <span className="font-bold text-green-700">{cifra.tom}</span>
+              {cifra.capotraste && cifra.capotraste > 0 && (
+                <> • Capotraste <span className="font-bold text-blue-700">{cifra.capotraste}ª casa</span></>
+              )}
             </div>
             <h1 className="text-3xl font-bold text-primary mb-1">{cifra.titulo}</h1>
             <div className="text-xl text-green-900 font-semibold">{cifra.artista}</div>
@@ -105,6 +108,7 @@ export default function CifraVisualizar() {
           cifra={cifra.cifra}
           tomOriginal={cifra.tom}
           fontSize={fontSize}
+          capotrasteInicial={cifra.capotraste || 0}
         />
 
       </div>
