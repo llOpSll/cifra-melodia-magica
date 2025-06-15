@@ -78,11 +78,13 @@ export default function Repertorios() {
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-xl font-bold" style={{ color: '#333447' }}>{repertorio.nome}</h3>
-                      {isShared ? (
-                        <Globe size={16} style={{ color: '#7F8CAA' }} title="Repertório compartilhado" />
-                      ) : (
-                        <User size={16} style={{ color: '#7F8CAA' }} title="Repertório local" />
-                      )}
+                      <div title={isShared ? "Repertório compartilhado" : "Repertório local"}>
+                        {isShared ? (
+                          <Globe size={16} style={{ color: '#7F8CAA' }} />
+                        ) : (
+                          <User size={16} style={{ color: '#7F8CAA' }} />
+                        )}
+                      </div>
                     </div>
                     <p style={{ color: '#7F8CAA' }}>{repertorio.cifras.length} cifras</p>
                     {isShared && (
