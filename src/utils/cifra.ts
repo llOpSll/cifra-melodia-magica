@@ -99,20 +99,15 @@ export function transporCifra(cifra: string, semitons: number): string {
       return transposeTabLine(linha, semitons);
     }
     
-    // Se for uma linha só de acordes (sem letra), transpor todos os acordes
-    if (isChordOnlyLine(linha)) {
-      return linha.replace(/\b[A-G][#b]?[0-9a-zA-Z/]*\b/g, (acorde) => {
+    // Para todas as linhas, transpor acordes identificados
+    // Padrão mais abrangente para identificar acordes no meio do texto
+    return linha.replace(/\b([A-G][#b]?(?:m|dim|aug|sus[24]?|add[0-9]|[0-9]+|M|maj|min)*(?:\/[A-G][#b]?)?)\b/g, (match, acorde) => {
+      // Verificar se realmente é um acorde e não uma palavra comum
+      if (/^[A-G][#b]?/.test(acorde)) {
         return transpAcorde(acorde, semitons);
-      });
-    }
-    
-    // Para linhas com acordes entre colchetes, transpor normalmente
-    const linhaComColchetes = linha.replace(/\[([^\]]+)\]/g, (full, acorde) => {
-      let transposto = transpAcorde(acorde, semitons);
-      return `[${transposto}]`;
+      }
+      return match;
     });
-    
-    return linhaComColchetes;
   });
   
   return linhasTranspostas.join('\n');

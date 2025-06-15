@@ -100,22 +100,25 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
       );
     }
 
-    // Renderização normal para acordes entre colchetes e letras
+    // Para linhas mistas (acordes + letra), destacar acordes no meio do texto
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug">
-        {l.split(/(\[[^\]]+\])/g).map((part, j) =>
-          /^\[[^\]]+\]$/.test(part) ? (
-            <span
-              key={j}
-              className="font-bold text-green-700 bg-green-100/80 rounded px-1 mx-1"
-              style={{ fontSize: fontSize * 0.95 + "px" }}
-            >
-              {part.replace(/[\[\]]/g, "")}
-            </span>
-          ) : (
-            <span key={j} style={{ fontSize: fontSize + "px" }}>{part}</span>
-          )
-        )}
+        {l.split(/(\b[A-G][#b]?(?:m|dim|aug|sus[24]?|add[0-9]|[0-9]+|M|maj|min)*(?:\/[A-G][#b]?)?\b)/).map((part, j) => {
+          // Se a parte é um acorde, destacar
+          if (/^[A-G][#b]?(?:m|dim|aug|sus[24]?|add[0-9]|[0-9]+|M|maj|min)*(?:\/[A-G][#b]?)?$/.test(part) && part.trim()) {
+            return (
+              <span
+                key={j}
+                className="font-bold text-green-700 bg-green-100/80 rounded px-1"
+                style={{ fontSize: fontSize * 0.95 + "px" }}
+              >
+                {part}
+              </span>
+            );
+          }
+          // Senão, renderizar normalmente
+          return <span key={j} style={{ fontSize: fontSize + "px" }}>{part}</span>;
+        })}
       </div>
     );
   }
