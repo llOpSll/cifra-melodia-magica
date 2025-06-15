@@ -14,15 +14,6 @@ function normalizaTom(t: string): string {
   return enhar[up] || up;
 }
 
-function getSemitons(base: string, alvo: string): number {
-  base = normalizaTom(base);
-  alvo = normalizaTom(alvo);
-  const iBase = tonsOrdem.indexOf(base);
-  const iAlvo = tonsOrdem.indexOf(alvo);
-  if (iBase === -1 || iAlvo === -1) return 0;
-  return (iAlvo - iBase + 12) % 12;
-}
-
 function transpAcorde(acorde: string, semitons: number): string {
   // Match nota + opcional #/b + resto (acorde extenso com / baixo, etc)
   const match = acorde.match(/^([A-G][#b]?)(.*)/);
@@ -45,7 +36,7 @@ function transpAcorde(acorde: string, semitons: number): string {
       let idxBaixo = tonsOrdem.indexOf(normalizaTom(baixoNota));
       if (idxBaixo > -1) {
         let novoBaixo = tonsOrdem[(idxBaixo + semitons + 12) % 12];
-        return notaNova + "/" + novoBaixo + baixoParte.substring(baixoMatch[1].length);
+        return notaNova + partes[0] + "/" + novoBaixo + baixoParte.substring(baixoMatch[1].length);
       }
     }
   }
@@ -64,9 +55,12 @@ export function transporCifra(cifra: string, semitons: number): string {
   });
 }
 
-// Calcula diferença entre dois tons
-export function calcularDiferenca(tomOriginal: string, tomNovo: string): number {
-  return getSemitons(tomOriginal, tomNovo);
+// Função para transpor um tom específico
+export function transporTom(tom: string, semitons: number): string {
+  const idx = tonsOrdem.indexOf(normalizaTom(tom));
+  if (idx === -1) return tom;
+  const novoIdx = (idx + semitons + 12) % 12;
+  return tonsOrdem[novoIdx];
 }
 
 // Função para capotraste
@@ -80,10 +74,5 @@ export function aplicarCapotraste(cifra: string, casaCapo: number): string {
 // Função para obter tom com capotraste
 export function obterTomComCapo(tomOriginal: string, casaCapo: number): string {
   if (casaCapo === 0) return tomOriginal;
-  
-  const idx = tonsOrdem.indexOf(normalizaTom(tomOriginal));
-  if (idx === -1) return tomOriginal;
-  
-  const novoIdx = (idx - casaCapo + 12) % 12;
-  return tonsOrdem[novoIdx];
+  return transporTom(tomOriginal, -casaCapo);
 }

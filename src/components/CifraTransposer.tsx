@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { transporCifra, calcularDiferenca, aplicarCapotraste, obterTomComCapo } from "../utils/cifra";
+import { transporCifra, transporTom, aplicarCapotraste, obterTomComCapo } from "../utils/cifra";
 import { ArrowLeft, ArrowRight, Guitar, Hash } from "lucide-react";
 
 type Props = {
@@ -8,15 +8,6 @@ type Props = {
   tomOriginal: string;
   fontSize: number;
 };
-
-const tons = [
-  "C", "C#", "Db",
-  "D", "D#", "Eb",
-  "E", "F", "F#", "Gb",
-  "G", "G#", "Ab",
-  "A", "A#", "Bb",
-  "B",
-];
 
 export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
   const [transposicao, setTransposicao] = useState(0); // semitons de transposição
@@ -30,30 +21,30 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     setCapotraste(prev => Math.max(0, Math.min(prev + dir, 12)));
   }
 
-  // Aplicar transposição e capotraste
+  // Calcular tom atual considerando capotraste E transposição
+  let tomAtual = tomOriginal;
+  
+  // Primeiro aplica capotraste no tom
+  if (capotraste > 0) {
+    tomAtual = obterTomComCapo(tomAtual, capotraste);
+  }
+  
+  // Depois aplica transposição no tom
+  if (transposicao !== 0) {
+    tomAtual = transporTom(tomAtual, transposicao);
+  }
+
+  // Aplicar transformações na cifra
   let cifraTrabalhada = cifra;
   
-  // Primeiro aplica capotraste (se houver)
+  // Primeiro aplica capotraste na cifra (se houver)
   if (capotraste > 0) {
     cifraTrabalhada = aplicarCapotraste(cifraTrabalhada, capotraste);
   }
   
-  // Depois aplica transposição
+  // Depois aplica transposição na cifra
   if (transposicao !== 0) {
     cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
-  }
-
-  // Calcular tom atual
-  let tomAtual = tomOriginal;
-  if (capotraste > 0) {
-    tomAtual = obterTomComCapo(tomOriginal, capotraste);
-  }
-  if (transposicao !== 0) {
-    const idx = tons.findIndex(t => t.toUpperCase() === tomAtual.toUpperCase());
-    if (idx !== -1) {
-      const novoIdx = (idx + transposicao + tons.length) % tons.length;
-      tomAtual = tons[novoIdx];
-    }
   }
 
   // Parsea cifra para destacar acordes
