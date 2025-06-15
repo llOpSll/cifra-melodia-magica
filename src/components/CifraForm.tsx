@@ -12,7 +12,7 @@ type CifraDados = {
   tom: string;
   cifra: string;
   capotraste: number;
-  bpm: number;
+  bpm: string;
   videoYoutube: string;
 };
 
@@ -42,12 +42,12 @@ export function CifraForm({ cifraId }: Props) {
     tom: cifraExistente?.tom || "",
     cifra: cifraExistente?.cifra || "",
     capotraste: cifraExistente?.capotraste || 0,
-    bpm: cifraExistente?.bpm || 0,
+    bpm: cifraExistente?.bpm?.toString() || "",
     videoYoutube: cifraExistente?.videoYoutube || "",
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const value = e.target.name === 'capotraste' || e.target.name === 'bpm' ? parseInt(e.target.value) : e.target.value;
+    const value = e.target.name === 'capotraste' ? parseInt(e.target.value) : e.target.value;
     setForm({ ...form, [e.target.name]: value });
   }
 
@@ -167,13 +167,11 @@ export function CifraForm({ cifraId }: Props) {
         </div>
         <div>
           <label className="font-semibold block mb-1" htmlFor="bpm" style={{ color: '#333447' }}>BPM</label>
-          <input type="number" name="bpm" id="bpm"
-            placeholder="Ex: 120"
-            min="0"
-            max="300"
+          <input type="text" name="bpm" id="bpm"
+            placeholder="Ex: 120, Lento, Moderado"
             className="w-full rounded-lg px-3 py-2 border"
             style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
-            value={form.bpm || ''} onChange={handleChange} />
+            value={form.bpm} onChange={handleChange} />
         </div>
       </div>
       <div>
