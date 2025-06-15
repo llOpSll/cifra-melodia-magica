@@ -45,8 +45,8 @@ export default function RepertorioTocar() {
   }
 
   const cifraAtualObj = cifras[cifraAtual];
-  // Limpar o tom removendo qualquer "0" no final
-  const tomLimpo = cifraAtualObj.tom.replace(/0$/, '');
+  // Limpar o tom removendo qualquer "0" no final - função mais robusta
+  const tomLimpo = cifraAtualObj.tom.replace(/0+$/, '');
 
   return (
     <div className="min-h-screen font-sans" style={{ background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>

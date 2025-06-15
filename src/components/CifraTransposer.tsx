@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { transporCifra, transporTom } from "../utils/cifra";
 import { ArrowLeft, ArrowRight, Guitar, Hash } from "lucide-react";
@@ -21,8 +22,8 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
     setCapotraste(prev => Math.max(0, Math.min(prev + dir, 12)));
   }
 
-  // Limpar o tom original removendo qualquer "0" no final
-  const tomLimpo = tomOriginal.replace(/0$/, '');
+  // Limpar o tom original removendo qualquer "0" no final - função mais robusta
+  const tomLimpo = tomOriginal.replace(/0+$/, '');
 
   // Calcular tom atual - só aplicar mudanças se o usuário fez alterações
   let tomAtual = tomLimpo;

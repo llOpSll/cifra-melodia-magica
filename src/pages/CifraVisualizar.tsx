@@ -43,8 +43,8 @@ export default function CifraVisualizar() {
     );
   }
 
-  // Limpar o tom removendo qualquer "0" no final
-  const tomLimpo = cifra.tom.replace(/0$/, '');
+  // Limpar o tom removendo qualquer "0" no final - função mais robusta
+  const tomLimpo = cifra.tom.replace(/0+$/, '');
 
   return (
     <div className="min-h-screen py-8 px-2 font-sans" 
