@@ -47,8 +47,26 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
   }
 
-  // Parsea cifra para destacar acordes
+  // Função para detectar se uma linha é tablatura
+  function isTabLine(line: string): boolean {
+    const tabPattern = /^[EADGBEeadgbe]\|.*\|/;
+    const numberPattern = /\d+/;
+    const pipePattern = /\|.*\|/;
+    return (tabPattern.test(line) || pipePattern.test(line)) && numberPattern.test(line);
+  }
+
+  // Parsea cifra para destacar acordes e tablaturas
   function renderLinha(l: string, idx: number) {
+    // Se for uma linha de tablatura, renderizar com estilo especial
+    if (isTabLine(l)) {
+      return (
+        <div key={idx} className="whitespace-pre font-mono text-blue-700 bg-blue-50 rounded px-2 py-1 my-1">
+          <span style={{ fontSize: fontSize * 0.9 + "px" }}>{l}</span>
+        </div>
+      );
+    }
+
+    // Renderização normal para acordes e letras
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug">
         {l.split(/(\[[^\]]+\])/g).map((part, j) =>

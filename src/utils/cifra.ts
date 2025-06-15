@@ -6,7 +6,7 @@ const tonsOrdem = [
 
 // Dicionário para enharmônicos
 const enhar = {
-  "Db": "C#", "Eb": "D#", "Fb": "E", "E#": "F", "Gb": "F#", "Ab": "G#", "Bb": "A#", "Cb": "B",
+  "Db": "C#", "Eb": "D#", "Fb": "E", "Gb": "F#", "Ab": "G#", "Bb": "A#", "Cb": "B",
   "B#": "C"
 };
 
@@ -50,15 +50,49 @@ function transpAcorde(acorde: string, semitons: number): string {
   return notaNova + resto;
 }
 
-// Transpõe todos os acordes da cifra
+// Função para detectar se uma linha é tablatura
+function isTabLine(line: string): boolean {
+  // Verifica se a linha contém padrões típicos de tablatura
+  const tabPattern = /^[EADGBEeadgbe]\|.*\|/; // Começa com nota da corda e tem pipes
+  const numberPattern = /\d+/; // Contém números
+  const pipePattern = /\|.*\|/; // Tem pipes de início e fim
+  
+  return (tabPattern.test(line) || pipePattern.test(line)) && numberPattern.test(line);
+}
+
+// Função para transpor números em uma linha de tablatura
+function transposeTabLine(line: string, semitons: number): string {
+  if (semitons === 0) return line;
+  
+  return line.replace(/(\d+)/g, (match, numero) => {
+    const casa = parseInt(numero);
+    if (isNaN(casa)) return match;
+    
+    const novaCasa = casa + semitons;
+    // Limita entre 0 e 24 (casas razoáveis no braço da guitarra)
+    return Math.max(0, Math.min(novaCasa, 24)).toString();
+  });
+}
+
+// Transpõe todos os acordes da cifra e tablaturas
 export function transporCifra(cifra: string, semitons: number): string {
   if (semitons === 0) return cifra;
   
-  // Pega todos os [Acorde] e transpõe:
-  return cifra.replace(/\[([^\]]+)\]/g, (full, acorde) => {
-    let transposto = transpAcorde(acorde, semitons);
-    return `[${transposto}]`;
+  const linhas = cifra.split('\n');
+  const linhasTranspostas = linhas.map(linha => {
+    // Se for uma linha de tablatura, transpor os números
+    if (isTabLine(linha)) {
+      return transposeTabLine(linha, semitons);
+    }
+    
+    // Senão, transpor os acordes normalmente
+    return linha.replace(/\[([^\]]+)\]/g, (full, acorde) => {
+      let transposto = transpAcorde(acorde, semitons);
+      return `[${transposto}]`;
+    });
   });
+  
+  return linhasTranspostas.join('\n');
 }
 
 // Função para transpor um tom específico (incluindo acordes menores)
