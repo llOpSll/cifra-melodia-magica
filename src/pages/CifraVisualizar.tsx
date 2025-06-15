@@ -44,44 +44,50 @@ export default function CifraVisualizar() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50 py-8 px-2 font-sans">
-      <div className="mx-auto max-w-4xl bg-white/90 rounded-2xl p-8 shadow-lg border border-green-100">
+    <div className="min-h-screen py-8 px-2 font-sans" 
+         style={{ background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>
+      <div className="mx-auto max-w-4xl rounded-2xl p-8 shadow-lg border"
+           style={{ backgroundColor: 'rgba(234, 239, 239, 0.9)', borderColor: '#B8CFCE' }}>
         <button
           onClick={() => navigate(-1)}
-          className="mb-6 flex items-center text-green-600 hover:text-green-800 font-semibold text-sm"
+          className="mb-6 flex items-center font-semibold text-sm hover:opacity-80"
+          style={{ color: '#333447' }}
         >
           <ArrowLeft size={19} className="mr-1" />
           Voltar
         </button>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="uppercase tracking-wide text-xs text-gray-400 font-semibold mb-2">
-              {cifra.instrumento} • Tom <span className="font-bold text-green-700">{cifra.tom}</span>
+            <div className="uppercase tracking-wide text-xs font-semibold mb-2" style={{ color: '#7F8CAA' }}>
+              {cifra.instrumento} • Tom <span className="font-bold" style={{ color: '#333447' }}>{cifra.tom}</span>
               {cifra.capotraste && cifra.capotraste > 0 && (
-                <> • Capotraste <span className="font-bold text-blue-700">{cifra.capotraste}ª casa</span></>
+                <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.capotraste}ª casa</span></>
               )}
             </div>
-            <h1 className="text-3xl font-bold text-primary mb-1">{cifra.titulo}</h1>
-            <div className="text-xl text-green-900 font-semibold">{cifra.artista}</div>
+            <h1 className="text-3xl font-bold mb-1" style={{ color: '#333447' }}>{cifra.titulo}</h1>
+            <div className="text-xl font-semibold" style={{ color: '#333447' }}>{cifra.artista}</div>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <button
-                className="bg-blue-400 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:bg-blue-500 transition-all border shadow"
+                className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                style={{ backgroundColor: '#7F8CAA' }}
                 onClick={() => window.print()}
               >
                 <Printer size={17} />
                 Imprimir
               </button>
               <button
-                className="bg-yellow-400 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:bg-yellow-500 transition-all border shadow"
+                className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
                 onClick={() => navigate(`/editar/${cifra.id}`)}
               >
                 <Edit size={17} />
                 Editar
               </button>
               <button
-                className="bg-red-400 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:bg-red-500 transition-all border shadow"
+                className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                style={{ backgroundColor: '#333447' }}
                 onClick={handleDelete}
               >
                 <Trash2 size={17} />
@@ -91,18 +97,20 @@ export default function CifraVisualizar() {
             <div className="flex gap-2 mt-1">
               <button
                 onClick={() => setFontSize(fs => Math.min(fs + 2, 40))}
-                className="rounded-full bg-green-300 text-green-900 w-8 h-8 flex items-center justify-center hover:bg-green-400 font-bold text-lg border"
+                className="rounded-full w-8 h-8 flex items-center justify-center hover:opacity-80 font-bold text-lg border"
+                style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
                 aria-label="Aumentar fonte"
               >A+</button>
               <button
                 onClick={() => setFontSize(fs => Math.max(fs - 2, 10))}
-                className="rounded-full bg-green-100 text-green-800 w-8 h-8 flex items-center justify-center hover:bg-green-200 font-bold text-lg border"
+                className="rounded-full w-8 h-8 flex items-center justify-center hover:opacity-80 font-bold text-lg border"
+                style={{ backgroundColor: '#EAEFEF', color: '#333447' }}
                 aria-label="Diminuir fonte"
               >A-</button>
             </div>
           </div>
         </div>
-        <hr className="my-4" />
+        <hr className="my-4" style={{ borderColor: '#B8CFCE' }} />
 
         <CifraTransposer
           cifra={cifra.cifra}

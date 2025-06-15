@@ -13,8 +13,6 @@ export default function RepertorioTocar() {
   const [cifras, setCifras] = useState<Cifra[]>([]);
   const [cifraAtual, setCifraAtual] = useState(0);
   const [fontSize, setFontSize] = useState(18);
-  const [transposicoes, setTransposicoes] = useState<{ [key: string]: number }>({});
-  const [capostrastes, setCapostrastes] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     if (repertorio) {
@@ -49,24 +47,26 @@ export default function RepertorioTocar() {
   const cifraAtualObj = cifras[cifraAtual];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50 font-sans">
+    <div className="min-h-screen font-sans" style={{ background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>
       {/* Header fixo */}
-      <div className="bg-white/95 shadow-lg border-b border-green-200 p-4 sticky top-0 z-10">
+      <div className="shadow-lg border-b p-4 sticky top-0 z-10" 
+           style={{ backgroundColor: 'rgba(234, 239, 239, 0.95)', borderColor: '#B8CFCE' }}>
         <div className="mx-auto max-w-4xl flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-green-600 hover:text-green-800 font-semibold text-sm"
+            className="flex items-center font-semibold text-sm hover:opacity-80"
+            style={{ color: '#333447' }}
           >
             <ArrowLeft size={19} className="mr-1" />
             Voltar
           </button>
           
           <div className="text-center">
-            <h1 className="text-xl font-bold text-green-800 flex items-center gap-2">
+            <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: '#333447' }}>
               <Music size={20} />
               {repertorio.nome}
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm" style={{ color: '#7F8CAA' }}>
               {cifraAtual + 1} de {cifras.length} • {cifraAtualObj.titulo} - {cifraAtualObj.artista}
             </p>
           </div>
@@ -74,12 +74,14 @@ export default function RepertorioTocar() {
           <div className="flex gap-2">
             <button
               onClick={() => setFontSize(fs => Math.min(fs + 2, 40))}
-              className="rounded-full bg-green-300 text-green-900 w-8 h-8 flex items-center justify-center hover:bg-green-400 font-bold text-sm"
+              className="rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm hover:opacity-80"
+              style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
               aria-label="Aumentar fonte"
             >A+</button>
             <button
               onClick={() => setFontSize(fs => Math.max(fs - 2, 10))}
-              className="rounded-full bg-green-100 text-green-800 w-8 h-8 flex items-center justify-center hover:bg-green-200 font-bold text-sm"
+              className="rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm hover:opacity-80"
+              style={{ backgroundColor: '#EAEFEF', color: '#333447' }}
               aria-label="Diminuir fonte"
             >A-</button>
           </div>
@@ -89,26 +91,32 @@ export default function RepertorioTocar() {
       {/* Conteúdo da cifra */}
       <div className="pb-20"> {/* Padding bottom para não sobrepor as abas */}
         <div className="mx-auto max-w-4xl p-4">
-          <div className="bg-white/90 rounded-2xl p-6 shadow-lg border border-green-100">
+          <div className="rounded-2xl p-6 shadow-lg border" 
+               style={{ backgroundColor: 'rgba(234, 239, 239, 0.9)', borderColor: '#B8CFCE' }}>
             <div className="mb-4">
-              <div className="uppercase tracking-wide text-xs text-gray-400 font-semibold mb-2">
-                {cifraAtualObj.instrumento} • Tom <span className="font-bold text-green-700">{cifraAtualObj.tom}</span>
+              <div className="uppercase tracking-wide text-xs font-semibold mb-2" style={{ color: '#7F8CAA' }}>
+                {cifraAtualObj.instrumento} • Tom <span className="font-bold" style={{ color: '#333447' }}>{cifraAtualObj.tom}</span>
+                {cifraAtualObj.capotraste && cifraAtualObj.capotraste > 0 && (
+                  <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifraAtualObj.capotraste}ª casa</span></>
+                )}
               </div>
-              <h2 className="text-2xl font-bold text-primary mb-1">{cifraAtualObj.titulo}</h2>
-              <div className="text-lg text-green-900 font-semibold">{cifraAtualObj.artista}</div>
+              <h2 className="text-2xl font-bold mb-1" style={{ color: '#333447' }}>{cifraAtualObj.titulo}</h2>
+              <div className="text-lg font-semibold" style={{ color: '#333447' }}>{cifraAtualObj.artista}</div>
             </div>
             
             <CifraTransposer
               cifra={cifraAtualObj.cifra}
               tomOriginal={cifraAtualObj.tom}
               fontSize={fontSize}
+              capotrasteInicial={cifraAtualObj.capotraste || 0}
             />
           </div>
         </div>
       </div>
 
       {/* Navegação em abas fixas no bottom - otimizada para iPad */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 shadow-lg border-t border-green-200 z-20">
+      <div className="fixed bottom-0 left-0 right-0 shadow-lg border-t z-20"
+           style={{ backgroundColor: 'rgba(234, 239, 239, 0.95)', borderColor: '#B8CFCE' }}>
         <div className="overflow-x-auto">
           <div className="flex min-w-max px-2 py-3">
             {cifras.map((cifra, index) => (
@@ -117,10 +125,14 @@ export default function RepertorioTocar() {
                 onClick={() => setCifraAtual(index)}
                 className={`flex-shrink-0 px-4 py-3 mx-1 rounded-lg font-semibold text-sm transition-all ${
                   index === cifraAtual
-                    ? 'bg-green-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'text-white shadow-lg'
+                    : 'hover:opacity-80'
                 }`}
-                style={{ minWidth: '120px' }} // Garante toque fácil no iPad
+                style={{ 
+                  minWidth: '120px',
+                  backgroundColor: index === cifraAtual ? '#333447' : '#B8CFCE',
+                  color: index === cifraAtual ? 'white' : '#333447'
+                }}
               >
                 <div className="truncate">{cifra.titulo}</div>
                 <div className="text-xs opacity-75 truncate">{cifra.artista}</div>
