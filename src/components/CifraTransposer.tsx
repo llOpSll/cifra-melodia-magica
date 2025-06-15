@@ -66,7 +66,15 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
     return withoutChords.length < 3;
   }
 
-  // Parsear cifra para destacar acordes
+  // Função para processar formatação markdown simples
+  function processMarkdown(text: string): string {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **bold** -> <strong>
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // *italic* -> <em>
+      .replace(/_(.*?)_/g, '<u>$1</u>'); // _underline_ -> <u>
+  }
+
+  // Parsear cifra para destacar acordes e preservar formatação
   function renderLinha(l: string, idx: number) {
     // Se for uma linha de tablatura, destacar apenas os números das casas
     if (isTabLine(l)) {
@@ -81,7 +89,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
       );
     }
 
-    // Para linhas que contêm acordes
+    // Para linhas que contêm acordes ou texto normal
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace', fontSize: fontSize + "px" }}>
         {l.split(/(\[[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?\])/g).map((part, j) => {
@@ -99,8 +107,14 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
               </span>
             );
           }
-          // Senão, renderizar normalmente
-          return <span key={j}>{part}</span>;
+          // Processar formatação markdown no texto
+          const textoFormatado = processMarkdown(part);
+          return (
+            <span 
+              key={j} 
+              dangerouslySetInnerHTML={{ __html: textoFormatado }}
+            />
+          );
         })}
       </div>
     );

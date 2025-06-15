@@ -58,23 +58,38 @@ export function parseCifraFile(filename: string, content: string): Cifra {
   if (!artista) artista = 'Artista Desconhecido';
   if (!titulo) titulo = filename.replace('.txt', '').replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   
-  // Pegar todo o conteúdo como cifra (removendo apenas linhas de metadados do início)
+  // Identificar onde começa o conteúdo da cifra (após metadados)
   let startContent = 0;
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = 0; i < Math.min(15, lines.length); i++) {
     const line = lines[i].trim();
-    if (line.includes(':') && !line.startsWith('[') && i < 10 && 
+    if (line.includes(':') && !line.startsWith('[') && 
         (line.toLowerCase().includes('titulo') || line.toLowerCase().includes('artista') || 
          line.toLowerCase().includes('tom') || line.toLowerCase().includes('instrumento') || 
          line.toLowerCase().includes('capotraste'))) {
       startContent = i + 1;
-    } else if (line === '' && i < 10) {
-      continue;
-    } else {
+    } else if (line === '' && startContent > 0) {
+      // Pular linhas vazias após metadados
+      startContent = i + 1;
+    } else if (line !== '' && !line.includes(':')) {
+      // Encontrou conteúdo que não é metadado
       break;
     }
   }
   
-  cifraContent = lines.slice(startContent).join('\n').trim();
+  // Preservar quebras de linha originais do arquivo
+  // Converter tags HTML básicas para preservar formatação
+  cifraContent = lines.slice(startContent).join('\n')
+    .replace(/<br\s*\/?>/gi, '\n') // Converter <br> para quebra de linha
+    .replace(/<strong>(.*?)<\/strong>/gi, '**$1**') // Converter <strong> para markdown bold
+    .replace(/<b>(.*?)<\/b>/gi, '**$1**') // Converter <b> para markdown bold
+    .replace(/<em>(.*?)<\/em>/gi, '*$1*') // Converter <em> para markdown italic
+    .replace(/<i>(.*?)<\/i>/gi, '*$1*') // Converter <i> para markdown italic
+    .replace(/<u>(.*?)<\/u>/gi, '_$1_') // Converter <u> para underscore
+    .replace(/&nbsp;/gi, ' ') // Converter &nbsp; para espaço
+    .replace(/&amp;/gi, '&') // Converter &amp; para &
+    .replace(/&lt;/gi, '<') // Converter &lt; para <
+    .replace(/&gt;/gi, '>') // Converter &gt; para >
+    .trim();
 
   const agora = new Date().toISOString();
   const slug = slugify(`${artista}-${titulo}`, { lower: true, strict: true });
