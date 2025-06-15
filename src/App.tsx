@@ -17,39 +17,40 @@ import LegacyApp from "./legacy/LegacyApp";
 
 const queryClient = new QueryClient();
 
-// Detectar iPad 2 pelo User Agent - versão mais robusta
-function isIPad2() {
+// Detectar iPad 2 de forma mais simples e robusta
+function isLegacyDevice() {
   try {
-    const userAgent = navigator.userAgent;
+    // Verificações básicas de compatibilidade
+    var userAgent = navigator.userAgent || '';
     
-    // Detectar iPad
-    const isIPad = userAgent.indexOf('iPad') !== -1;
-    if (!isIPad) return false;
+    // Detectar iPad explicitamente
+    var isIPad = userAgent.indexOf('iPad') > -1;
     
-    // Detectar versões antigas do iOS (compatíveis com iPad 2)
-    const isOldIOS = userAgent.indexOf('OS 9_') !== -1 || 
-                     userAgent.indexOf('OS 8_') !== -1 || 
-                     userAgent.indexOf('OS 7_') !== -1 ||
-                     userAgent.indexOf('OS 6_') !== -1 ||
-                     userAgent.indexOf('OS 5_') !== -1;
+    // Detectar iOS antigo (iPad 2 suporta até iOS 9)
+    var isOldIOS = userAgent.indexOf('OS 9_') > -1 || 
+                   userAgent.indexOf('OS 8_') > -1 || 
+                   userAgent.indexOf('OS 7_') > -1 ||
+                   userAgent.indexOf('OS 6_') > -1 ||
+                   userAgent.indexOf('OS 5_') > -1;
     
-    // Detectar recursos limitados (iPad 2 tem menos recursos)
-    const hasLimitedSupport = !window.indexedDB || 
-                              !window.Worker || 
-                              !document.querySelector ||
-                              typeof Promise === 'undefined';
+    // Verificar se recursos modernos estão disponíveis
+    var hasModernFeatures = typeof Promise !== 'undefined' && 
+                           typeof Object.assign !== 'undefined' &&
+                           typeof Array.prototype.find !== 'undefined';
     
-    return isOldIOS || hasLimitedSupport;
+    // Se for iPad com iOS antigo OU não tiver recursos modernos, usar legacy
+    return (isIPad && isOldIOS) || !hasModernFeatures;
   } catch (error) {
-    // Em caso de erro, assumir dispositivo moderno
-    console.log('Erro na detecção do dispositivo:', error);
-    return false;
+    // Se houver erro na detecção, usar versão legacy por segurança
+    console.log('Erro na detecção, usando versão legacy');
+    return true;
   }
 }
 
 const App = () => {
-  // Se for iPad 2 ou dispositivo com recursos limitados, usar versão legacy
-  if (isIPad2()) {
+  // Usar versão legacy para dispositivos antigos
+  if (isLegacyDevice()) {
+    console.log('Dispositivo legacy detectado, carregando versão compatível');
     return <LegacyApp />;
   }
 
