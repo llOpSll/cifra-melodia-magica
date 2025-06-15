@@ -1,5 +1,4 @@
 
-
 const tonsOrdem = [
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 ];
@@ -60,6 +59,21 @@ function isTabLine(line: string): boolean {
   return (tabPattern.test(line) || pipePattern.test(line)) && numberPattern.test(line);
 }
 
+// Função para detectar se uma linha contém apenas acordes (sem letra)
+function isChordOnlyLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  
+  // Remove espaços extras e divide por espaços
+  const parts = trimmed.split(/\s+/);
+  
+  // Verifica se todos os elementos são acordes
+  return parts.every(part => {
+    // Padrão para acordes: nota + opcional #/b + extensões opcionais
+    return /^[A-G][#b]?[0-9a-zA-Z/]*$/.test(part);
+  });
+}
+
 // Função para transpor números em uma linha de tablatura
 function transposeTabLine(line: string, semitons: number): string {
   if (semitons === 0) return line;
@@ -85,11 +99,20 @@ export function transporCifra(cifra: string, semitons: number): string {
       return transposeTabLine(linha, semitons);
     }
     
-    // Senão, transpor os acordes normalmente
-    return linha.replace(/\[([^\]]+)\]/g, (full, acorde) => {
+    // Se for uma linha só de acordes (sem letra), transpor todos os acordes
+    if (isChordOnlyLine(linha)) {
+      return linha.replace(/\b[A-G][#b]?[0-9a-zA-Z/]*\b/g, (acorde) => {
+        return transpAcorde(acorde, semitons);
+      });
+    }
+    
+    // Para linhas com acordes entre colchetes, transpor normalmente
+    const linhaComColchetes = linha.replace(/\[([^\]]+)\]/g, (full, acorde) => {
       let transposto = transpAcorde(acorde, semitons);
       return `[${transposto}]`;
     });
+    
+    return linhaComColchetes;
   });
   
   return linhasTranspostas.join('\n');
@@ -124,4 +147,3 @@ export function obterTomComCapo(tomOriginal: string, casaCapo: number): string {
   if (casaCapo === 0) return tomOriginal;
   return transporTom(tomOriginal, -casaCapo);
 }
-

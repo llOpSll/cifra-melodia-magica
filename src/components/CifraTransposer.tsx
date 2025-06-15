@@ -55,6 +55,15 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     return (tabPattern.test(line) || pipePattern.test(line)) && numberPattern.test(line);
   }
 
+  // Função para detectar se uma linha contém apenas acordes
+  function isChordOnlyLine(line: string): boolean {
+    const trimmed = line.trim();
+    if (!trimmed) return false;
+    
+    const parts = trimmed.split(/\s+/);
+    return parts.every(part => /^[A-G][#b]?[0-9a-zA-Z/]*$/.test(part));
+  }
+
   // Parsea cifra para destacar acordes e tablaturas
   function renderLinha(l: string, idx: number) {
     // Se for uma linha de tablatura, renderizar com estilo especial
@@ -66,7 +75,32 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
       );
     }
 
-    // Renderização normal para acordes e letras
+    // Se for uma linha só de acordes, destacar todos
+    if (isChordOnlyLine(l)) {
+      return (
+        <div key={idx} className="whitespace-pre-wrap leading-snug">
+          {l.split(/(\s+)/).map((part, j) => {
+            if (/^\s+$/.test(part)) {
+              return <span key={j}>{part}</span>;
+            }
+            if (/^[A-G][#b]?[0-9a-zA-Z/]*$/.test(part.trim()) && part.trim()) {
+              return (
+                <span
+                  key={j}
+                  className="font-bold text-green-700 bg-green-100/80 rounded px-1"
+                  style={{ fontSize: fontSize * 0.95 + "px" }}
+                >
+                  {part}
+                </span>
+              );
+            }
+            return <span key={j} style={{ fontSize: fontSize + "px" }}>{part}</span>;
+          })}
+        </div>
+      );
+    }
+
+    // Renderização normal para acordes entre colchetes e letras
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug">
         {l.split(/(\[[^\]]+\])/g).map((part, j) =>
