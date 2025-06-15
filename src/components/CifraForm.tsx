@@ -168,7 +168,8 @@ export function CifraForm({ cifraId }: Props) {
           value={form.cifra} onChange={handleChange}></textarea>
         <small className="block mt-1" style={{ color: '#7F8CAA' }}>
           Exemplo:<br />
-          [C]Letra da música aqui<br />
+          <span style={{ backgroundColor: '#121214', color: '#F1F2F5', padding: '2px 4px', borderRadius: '3px' }}>[C]</span><br />
+          Letra da música aqui<br />
           Use [Acorde] para marcar acordes
         </small>
       </div>
