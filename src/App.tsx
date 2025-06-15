@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CifraNova from "./pages/CifraNova";
@@ -14,6 +15,7 @@ import RepertorioNovo from "./pages/RepertorioNovo";
 import RepertorioEditar from "./pages/RepertorioEditar";
 import RepertorioTocar from "./pages/RepertorioTocar";
 import LegacyApp from "./legacy/LegacyApp";
+import { loadFileBasedCifras, loadFileBasedRepertorios } from "./utils/storage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,22 @@ function isLegacyDevice() {
 }
 
 const App = () => {
+  // Carregar dados dos arquivos na inicialização
+  useEffect(() => {
+    async function carregarDados() {
+      try {
+        await Promise.all([
+          loadFileBasedCifras(),
+          loadFileBasedRepertorios()
+        ]);
+        console.log('Dados dos arquivos carregados com sucesso');
+      } catch (error) {
+        console.log('Erro ao carregar dados dos arquivos:', error);
+      }
+    }
+    carregarDados();
+  }, []);
+
   // Usar versão legacy para dispositivos antigos
   if (isLegacyDevice()) {
     console.log('Dispositivo legacy detectado, carregando versão compatível');

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Music, Plus, ArrowLeft, Edit, Trash2, Play } from "lucide-react";
+import { Music, Plus, ArrowLeft, Edit, Trash2, Play, Globe, User } from "lucide-react";
 import { getRepertorios, deletarRepertorio } from "../utils/storage";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,6 +14,15 @@ export default function Repertorios() {
   }, []);
 
   function handleDelete(id: string, nome: string) {
+    // Verificar se é repertório de arquivo (não pode ser deletado)
+    if (id.startsWith('file-')) {
+      toast({
+        title: "Este repertório não pode ser excluído",
+        description: "Repertórios compartilhados são somente leitura.",
+      });
+      return;
+    }
+
     if (confirm(`Tem certeza que deseja excluir o repertório "${nome}"?`)) {
       const sucesso = deletarRepertorio(id);
       if (sucesso) {
@@ -60,46 +69,65 @@ export default function Repertorios() {
 
       <section className="mx-auto max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {repertorios.length ? (
-          repertorios.map(repertorio => (
-            <div key={repertorio.id} className="rounded-xl p-6 shadow-lg border hover:shadow-xl transition-all"
-                 style={{ backgroundColor: 'rgba(234, 239, 239, 0.9)', borderColor: '#B8CFCE' }}>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-xl font-bold mb-2" style={{ color: '#333447' }}>{repertorio.nome}</h3>
-                  <p style={{ color: '#7F8CAA' }}>{repertorio.cifras.length} cifras</p>
+          repertorios.map(repertorio => {
+            const isShared = repertorio.id.startsWith('file-');
+            return (
+              <div key={repertorio.id} className="rounded-xl p-6 shadow-lg border hover:shadow-xl transition-all"
+                   style={{ backgroundColor: 'rgba(234, 239, 239, 0.9)', borderColor: '#B8CFCE' }}>
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-bold" style={{ color: '#333447' }}>{repertorio.nome}</h3>
+                      {isShared ? (
+                        <Globe size={16} style={{ color: '#7F8CAA' }} title="Repertório compartilhado" />
+                      ) : (
+                        <User size={16} style={{ color: '#7F8CAA' }} title="Repertório local" />
+                      )}
+                    </div>
+                    <p style={{ color: '#7F8CAA' }}>{repertorio.cifras.length} cifras</p>
+                    {isShared && (
+                      <p className="text-xs mt-1" style={{ color: '#7F8CAA' }}>
+                        Compartilhado • Somente leitura
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => navigate(`/repertorios/${repertorio.id}/tocar`)}
+                      className="p-2 text-white rounded-lg hover:opacity-80 transition-all"
+                      style={{ backgroundColor: '#7F8CAA' }}
+                      title="Tocar repertório"
+                    >
+                      <Play size={16} />
+                    </button>
+                    {!isShared && (
+                      <>
+                        <button
+                          onClick={() => navigate(`/repertorios/${repertorio.id}/editar`)}
+                          className="p-2 rounded-lg hover:opacity-80 transition-all"
+                          style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
+                          title="Editar"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(repertorio.id, repertorio.nome)}
+                          className="p-2 text-white rounded-lg hover:opacity-80 transition-all"
+                          style={{ backgroundColor: '#333447' }}
+                          title="Excluir"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => navigate(`/repertorios/${repertorio.id}/tocar`)}
-                    className="p-2 text-white rounded-lg hover:opacity-80 transition-all"
-                    style={{ backgroundColor: '#7F8CAA' }}
-                    title="Tocar repertório"
-                  >
-                    <Play size={16} />
-                  </button>
-                  <button
-                    onClick={() => navigate(`/repertorios/${repertorio.id}/editar`)}
-                    className="p-2 rounded-lg hover:opacity-80 transition-all"
-                    style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
-                    title="Editar"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(repertorio.id, repertorio.nome)}
-                    className="p-2 text-white rounded-lg hover:opacity-80 transition-all"
-                    style={{ backgroundColor: '#333447' }}
-                    title="Excluir"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                <p className="text-sm" style={{ color: '#7F8CAA' }}>
+                  Criado em {new Date(repertorio.criadoEm).toLocaleDateString('pt-BR')}
+                </p>
               </div>
-              <p className="text-sm" style={{ color: '#7F8CAA' }}>
-                Criado em {new Date(repertorio.criadoEm).toLocaleDateString('pt-BR')}
-              </p>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="col-span-full text-lg text-center" style={{ color: '#7F8CAA' }}>
             <p className="mb-4">Nenhum repertório encontrado.</p>

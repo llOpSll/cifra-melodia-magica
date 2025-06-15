@@ -29,6 +29,7 @@ const CIFRAS_EXCLUIDAS_KEY = 'cifras_app_cifras_excluidas'; // Nova chave para c
 
 // Importar a função para carregar cifras dos arquivos
 import { loadCifrasFromFiles } from './fileReader';
+import { loadRepertoriosFromFiles, getRepertoriosFromFiles, loadFileBasedRepertorios } from './repertorioFileReader';
 
 // Cache para cifras dos arquivos
 let cifrasFromFiles: Cifra[] = [];
@@ -221,8 +222,33 @@ export function deletarCifra(id: string): boolean {
   return true;
 }
 
-// Funções para repertórios
+// Funções para repertórios - ATUALIZADAS
 export function getRepertorios(): Repertorio[] {
+  try {
+    const data = localStorage.getItem(REPERTORIOS_KEY);
+    const repertoriosLocalStorage = data ? JSON.parse(data) : [];
+    
+    // Combinar repertórios do localStorage com repertórios dos arquivos
+    const repertoriosArquivos = getRepertoriosFromFiles();
+    
+    return [...repertoriosArquivos, ...repertoriosLocalStorage];
+  } catch {
+    return getRepertoriosFromFiles();
+  }
+}
+
+// Função para carregar repertórios dos arquivos (chamada uma vez)
+export async function loadFileBasedRepertorios(): Promise<void> {
+  await loadFileBasedRepertorios();
+}
+
+export function getRepertorioById(id: string): Repertorio | null {
+  const repertorios = getRepertorios();
+  return repertorios.find(r => r.id === id) || null;
+}
+
+// Função auxiliar para pegar apenas repertórios do localStorage
+function getRepertoriosFromLocalStorage(): Repertorio[] {
   try {
     const data = localStorage.getItem(REPERTORIOS_KEY);
     return data ? JSON.parse(data) : [];
@@ -231,13 +257,8 @@ export function getRepertorios(): Repertorio[] {
   }
 }
 
-export function getRepertorioById(id: string): Repertorio | null {
-  const repertorios = getRepertorios();
-  return repertorios.find(r => r.id === id) || null;
-}
-
 export function salvarRepertorio(nome: string, cifrasIds: string[] = []): string {
-  const repertorios = getRepertorios();
+  const repertoriosLocalStorage = getRepertoriosFromLocalStorage();
   const agora = new Date().toISOString();
   const novoRepertorio: Repertorio = {
     id: generateId(),
@@ -247,32 +268,42 @@ export function salvarRepertorio(nome: string, cifrasIds: string[] = []): string
     atualizadoEm: agora
   };
   
-  repertorios.push(novoRepertorio);
-  localStorage.setItem(REPERTORIOS_KEY, JSON.stringify(repertorios));
+  repertoriosLocalStorage.push(novoRepertorio);
+  localStorage.setItem(REPERTORIOS_KEY, JSON.stringify(repertoriosLocalStorage));
   return novoRepertorio.id;
 }
 
 export function atualizarRepertorio(id: string, dados: Partial<Omit<Repertorio, 'id' | 'criadoEm'>>): boolean {
-  const repertorios = getRepertorios();
-  const index = repertorios.findIndex(r => r.id === id);
+  // Só permite editar repertórios do localStorage (não dos arquivos)
+  if (id.startsWith('file-')) {
+    return false; // Repertórios dos arquivos são read-only
+  }
+  
+  const repertoriosLocalStorage = getRepertoriosFromLocalStorage();
+  const index = repertoriosLocalStorage.findIndex(r => r.id === id);
   
   if (index === -1) return false;
   
-  repertorios[index] = {
-    ...repertorios[index],
+  repertoriosLocalStorage[index] = {
+    ...repertoriosLocalStorage[index],
     ...dados,
     atualizadoEm: new Date().toISOString()
   };
   
-  localStorage.setItem(REPERTORIOS_KEY, JSON.stringify(repertorios));
+  localStorage.setItem(REPERTORIOS_KEY, JSON.stringify(repertoriosLocalStorage));
   return true;
 }
 
 export function deletarRepertorio(id: string): boolean {
-  const repertorios = getRepertorios();
-  const repertoriosFiltrados = repertorios.filter(r => r.id !== id);
+  // Não permite deletar repertórios dos arquivos
+  if (id.startsWith('file-')) {
+    return false; // Repertórios dos arquivos são read-only
+  }
   
-  if (repertorios.length === repertoriosFiltrados.length) return false;
+  const repertoriosLocalStorage = getRepertoriosFromLocalStorage();
+  const repertoriosFiltrados = repertoriosLocalStorage.filter(r => r.id !== id);
+  
+  if (repertoriosLocalStorage.length === repertoriosFiltrados.length) return false;
   
   localStorage.setItem(REPERTORIOS_KEY, JSON.stringify(repertoriosFiltrados));
   return true;
@@ -282,7 +313,7 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Modificar função de inicialização para não sobrescrever cifras dos arquivos
+// Modificar função de inicialização para carregar repertórios de arquivos
 export function inicializarDadosExemplo() {
   const cifras = getCifrasFromLocalStorage();
   

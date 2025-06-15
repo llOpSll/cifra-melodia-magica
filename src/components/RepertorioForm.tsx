@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +12,9 @@ export function RepertorioForm({ repertorioId }: Props) {
   const navigate = useNavigate();
   const repertorioExistente = repertorioId ? getRepertorioById(repertorioId) : null;
   
+  // Verificar se é repertório de arquivo (não editável)
+  const isReadOnly = repertorioExistente?.id.startsWith('file-') || false;
+  
   const [nome, setNome] = useState(repertorioExistente?.nome || "");
   const [cifrasSelecionadas, setCifrasSelecionadas] = useState<string[]>(
     repertorioExistente?.cifras || []
@@ -23,6 +25,17 @@ export function RepertorioForm({ repertorioId }: Props) {
   useEffect(() => {
     setCifrasDisponiveis(getCifras());
   }, []);
+
+  // Se for repertório de arquivo, redirecionar
+  useEffect(() => {
+    if (isReadOnly) {
+      toast({
+        title: "Repertório não editável",
+        description: "Este repertório é compartilhado e não pode ser editado.",
+      });
+      navigate("/repertorios");
+    }
+  }, [isReadOnly, navigate]);
 
   const cifrasFiltradas = cifrasDisponiveis.filter(
     c =>
@@ -44,6 +57,15 @@ export function RepertorioForm({ repertorioId }: Props) {
     if (!nome.trim()) {
       toast({
         title: "Por favor, insira um nome para o repertório.",
+      });
+      return;
+    }
+
+    // Verificação adicional para repertórios de arquivo
+    if (repertorioId && repertorioId.startsWith('file-')) {
+      toast({
+        title: "Erro: Repertório não editável",
+        description: "Repertórios compartilhados não podem ser modificados.",
       });
       return;
     }
@@ -78,6 +100,11 @@ export function RepertorioForm({ repertorioId }: Props) {
         title: "Erro ao salvar o repertório.",
       });
     }
+  }
+
+  // Se for repertório de arquivo, não renderizar o formulário
+  if (isReadOnly) {
+    return null;
   }
 
   return (
