@@ -43,14 +43,14 @@ export function importarCifra(file: File): Promise<Cifra> {
         const content = event.target?.result as string;
         const lines = content.split('\n');
         const metadata: Record<string, string> = {};
-        let cifraContent = '';
+        const cifraLines: string[] = [];
         let parsingMetadata = true;
 
         for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
+          const line = lines[i];
           
           // Se linha vazia e estávamos parseando metadata, agora começamos o conteúdo
-          if (line === '' && parsingMetadata) {
+          if (line.trim() === '' && parsingMetadata) {
             parsingMetadata = false;
             continue;
           }
@@ -70,8 +70,8 @@ export function importarCifra(file: File): Promise<Cifra> {
             else if (key === 'bpm') metadata.bpm = value;
             else if (key === 'videoyoutube' || key === 'video youtube' || key === 'youtube') metadata.videoyoutube = value;
           } else if (!parsingMetadata) {
-            // Adicionar ao conteúdo da cifra
-            cifraContent += line + '\n';
+            // Adicionar linha completa (preservando quebras e espaços)
+            cifraLines.push(line);
           }
         }
 
@@ -84,6 +84,9 @@ export function importarCifra(file: File): Promise<Cifra> {
         const bpm = metadata.bpm || '';
         const videoYoutube = metadata.videoyoutube || '';
 
+        // Juntar as linhas preservando quebras originais
+        const cifraContent = cifraLines.join('\n');
+
         const agora = new Date().toISOString();
 
         const cifra: Cifra = {
@@ -92,7 +95,7 @@ export function importarCifra(file: File): Promise<Cifra> {
           titulo,
           instrumento,
           tom,
-          cifra: cifraContent.trim(),
+          cifra: cifraContent,
           slug: '', // Será gerado ao salvar
           capotraste,
           bpm,
