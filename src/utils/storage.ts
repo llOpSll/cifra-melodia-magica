@@ -23,13 +23,37 @@ export interface Repertorio {
 const CIFRAS_KEY = 'cifras_app_cifras';
 const REPERTORIOS_KEY = 'cifras_app_repertorios';
 
+// Importar a função para carregar cifras dos arquivos
+import { loadCifrasFromFiles } from './fileReader';
+
+// Cache para cifras dos arquivos
+let cifrasFromFiles: Cifra[] = [];
+let cifrasFromFilesLoaded = false;
+
 // Funções para cifras
 export function getCifras(): Cifra[] {
   try {
     const data = localStorage.getItem(CIFRAS_KEY);
-    return data ? JSON.parse(data) : [];
+    const cifrasLocalStorage = data ? JSON.parse(data) : [];
+    
+    // Combinar cifras do localStorage com cifras dos arquivos
+    return [...cifrasFromFiles, ...cifrasLocalStorage];
   } catch {
-    return [];
+    return [...cifrasFromFiles];
+  }
+}
+
+// Função para carregar cifras dos arquivos (chamada uma vez)
+export async function loadFileBasedCifras(): Promise<void> {
+  if (!cifrasFromFilesLoaded) {
+    try {
+      cifrasFromFiles = await loadCifrasFromFiles();
+      cifrasFromFilesLoaded = true;
+    } catch (error) {
+      console.log('Erro ao carregar cifras dos arquivos:', error);
+      cifrasFromFiles = [];
+      cifrasFromFilesLoaded = true;
+    }
   }
 }
 
@@ -43,8 +67,9 @@ export function getCifraBySlug(slug: string): Cifra | null {
   return cifras.find(c => c.slug === slug) || null;
 }
 
+// Salvar cifra apenas no localStorage (cifras dos arquivos são read-only)
 export function salvarCifra(cifra: Omit<Cifra, 'id' | 'criadaEm' | 'atualizadaEm'>): string {
-  const cifras = getCifras();
+  const cifrasLocalStorage = getCifrasFromLocalStorage();
   const agora = new Date().toISOString();
   const novaCifra: Cifra = {
     ...cifra,
@@ -53,32 +78,52 @@ export function salvarCifra(cifra: Omit<Cifra, 'id' | 'criadaEm' | 'atualizadaEm
     atualizadaEm: agora
   };
   
-  cifras.push(novaCifra);
-  localStorage.setItem(CIFRAS_KEY, JSON.stringify(cifras));
+  cifrasLocalStorage.push(novaCifra);
+  localStorage.setItem(CIFRAS_KEY, JSON.stringify(cifrasLocalStorage));
   return novaCifra.id;
 }
 
+// Função auxiliar para pegar apenas cifras do localStorage
+function getCifrasFromLocalStorage(): Cifra[] {
+  try {
+    const data = localStorage.getItem(CIFRAS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function atualizarCifra(id: string, dados: Partial<Omit<Cifra, 'id' | 'criadaEm'>>): boolean {
-  const cifras = getCifras();
-  const index = cifras.findIndex(c => c.id === id);
+  // Só permite editar cifras do localStorage (não dos arquivos)
+  if (id.startsWith('file-')) {
+    return false; // Cifras dos arquivos são read-only
+  }
+  
+  const cifrasLocalStorage = getCifrasFromLocalStorage();
+  const index = cifrasLocalStorage.findIndex(c => c.id === id);
   
   if (index === -1) return false;
   
-  cifras[index] = {
-    ...cifras[index],
+  cifrasLocalStorage[index] = {
+    ...cifrasLocalStorage[index],
     ...dados,
     atualizadaEm: new Date().toISOString()
   };
   
-  localStorage.setItem(CIFRAS_KEY, JSON.stringify(cifras));
+  localStorage.setItem(CIFRAS_KEY, JSON.stringify(cifrasLocalStorage));
   return true;
 }
 
 export function deletarCifra(id: string): boolean {
-  const cifras = getCifras();
-  const cifrasFiltradas = cifras.filter(c => c.id !== id);
+  // Só permite deletar cifras do localStorage (não dos arquivos)
+  if (id.startsWith('file-')) {
+    return false; // Cifras dos arquivos são read-only
+  }
   
-  if (cifras.length === cifrasFiltradas.length) return false;
+  const cifrasLocalStorage = getCifrasFromLocalStorage();
+  const cifrasFiltradas = cifrasLocalStorage.filter(c => c.id !== id);
+  
+  if (cifrasLocalStorage.length === cifrasFiltradas.length) return false;
   
   localStorage.setItem(CIFRAS_KEY, JSON.stringify(cifrasFiltradas));
   
@@ -156,161 +201,16 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Inicializar com dados de exemplo corretos
+// Modificar função de inicialização para não sobrescrever cifras dos arquivos
 export function inicializarDadosExemplo() {
-  const cifras = getCifras();
-  // Limpar todas as cifras existentes e recriar
-  localStorage.setItem(CIFRAS_KEY, JSON.stringify([]));
+  const cifras = getCifrasFromLocalStorage();
   
-  const agora = new Date().toISOString();
-  const exemplosCifras: Cifra[] = [
-    {
-      id: '1',
-      artista: 'MORADA',
-      titulo: 'Só Tu És Santo / Uma Coisa / Deixa Queimar / Quando Ele Vem (Pot-Pourri)',
-      instrumento: 'Violão',
-      tom: 'C',
-      capotraste: 0,
-      slug: 'morada-so-tu-es-santo-pot-pourri',
-      cifra: `Intro: [C]  [F]  [Am]  [G]
-
-[C]Só Tu és santo, [F]só Tu és digno
-[Am]Só Tu és santo, Se[G]nhor
-
-[C]E eu me rendo a Ti, Se[F]nhor
-[Am]E entrego a Ti o [G]meu cora[C]ção
-
-( [C]  [F]  [Am]  [G] )
-
-[Am]Uma coisa [F]peço ao Senhor [C]e a busca[G]rei
-[Am]Que eu possa [F]morar na casa [C]do Senhor[G]
-[Am]E contemplar a [F]Sua beleza [C]e Seu a[G]mor
-[Am]Por todos os [F]dias da minha [C]vi[G]da
-
-[F]Deixa queimar o [G]fogo santo em [Am]mim
-[F]Deixa queimar o [G]fogo santo em [C]mim
-[F]Deixa queimar o [G]fogo santo em [Am]mim[F]
-[G]Deixa que[C]mar
-
-[C]Quando Ele vem, algo aconte[F]ce
-[G]Corações se enchem de ale[C]gria
-[C]Quando Ele vem, algo aconte[F]ce
-[G]Tudo se transforma, tudo [C]muda
-
-[C]Quando Ele vem, quando Ele [F]vem
-[G]Quando Ele vem, quando Ele [C]vem`,
-      criadaEm: agora,
-      atualizadaEm: agora
-    },
-    {
-      id: '2',
-      artista: 'Oficina G3',
-      titulo: 'Te Escolhi',
-      instrumento: 'Guitarra',
-      tom: 'Bbm',
-      capotraste: 0,
-      slug: 'oficina-g3-te-escolhi',
-      cifra: `Intro:
-E|------------------------|
-B|------------------------|
-G|------------------------|
-D|---4-3------------------|
-A|-------4----------------|
-E|---------6--------------|
-
-[Bbm]Você já me procu[Ab]rou
-Por muitas vezes ten[Gb]tou
-Como cego na multidão
-[Bbm]Que procura seu cami[Ab]nho
-Mas sozinho nada encon[Gb]tra    [Gb]  [F]  [Db]  [Bbm]
-
-E|-------------------------------|
-B|-------------------------------|
-G|-------------------------------|
-D|---4-3-------------------------|
-A|-------4-----------------------|
-E|---------6---------------------|
-
-[Bbm]Quantas vezes eu te cha[Ab]mei
-E você não enten[Gb]deu     [Gb]  [F]  [Db]  [Bbm]
-
-E|-------------------------------|
-B|-------------------------------|
-G|-------------------------------|
-D|---4-3-------------------------|
-A|-------4-----------------------|
-E|---------6---------------------|
-
-[Fm]Se você parasse um pouco e ou[Gb]visse a minha voz
-
-[Db]Te esco[Ab]lhi, te bus[Bbm]quei
-Sempre ao seu lado eu cami[Gb]nhei
-[Db]Eu so[Ab]fri por vo[Bbm]cê[Gb]
-
-[Bbm]Eu te procu[Ab]ro
-E você por tantos lugares bus[Gb]cou
-
-E|-------------------------------|
-B|--------6/---9/----11/---------|
-G|-------------------------------|
-D|-------------------------------|
-A|-------------------------------|
-E|-------------------------------|
-
-[Bbm]Mas nunca enten[Ab]deu que eu sempre estive perto de vo[Gb]cê
-
-( [Gb]  [F]  [Db]  [Bbm] )
-
-E|-------------------------------|
-B|-------------------------------|
-G|-------------------------------|
-D|---4-3-------------------------|
-A|-------4-----------------------|
-E|---------6---------------------|
-
-[Bbm]Eu te escolhi, que[Ab]ro te conquistar
-[Gb]Te mostrar o verdadeiro ami[F]go  [Db]  [Bbm]
-
-E|-------------------------------|
-B|-------------------------------|
-G|-------------------------------|
-D|---4-3-------------------------|
-A|-------6-----------------------|
-E|---------6---------------------|
-
-[Fm]Se você parar e ouvir a mi[Gb]nha voz
-
-E|----------------------------------|
-B|--9--6----6-/-4-------------------|
-G|--------6--------6---------6------|
-D|--------------------4-3-4---------|
-A|----------------------------------|
-E|----------------------------------|
-
-[Db]Te esco[Ab]lhi, te bus[Bbm]quei
-Sempre ao seu lado eu cami[Gb]nhei
-[Db]Eu so[Ab]fri por vo[Bb]cê
-
-[Db]Te esco[Ab]lhi, te bus[Bbm]quei
-Sempre ao seu lado eu cami[Gb]nhei
-[Db]Eu so[Ab]fri por vo[Bb]cê
-
-( [Db]  [Ab]  [Bbm]  [Gb] )
-( [Db]  [Ab]  [Bbm]  [Gb] )
-( [Db]  [Ab]  [Bbm]  [Gb] )
-
-Final:
-[Db]Te esco[Ab]lhi, te bus[Bbm]quei
-Sempre ao seu lado eu cami[Gb]nhei
-[Db]Eu so[Ab]fri por vo[Bbm]cê  [Gb]
-
-[Db]Te esco[Ab]lhi, te bus[Bbm]quei
-Sempre ao seu lado eu cami[Gb]nhei
-[Db]Eu so[Ab]fri por vo[Bbm]cê  [Gb]`,
-      criadaEm: agora,
-      atualizadaEm: agora
-    }
-  ];
+  // Se já há cifras no localStorage, não fazer nada
+  if (cifras.length > 0) {
+    return;
+  }
   
-  localStorage.setItem(CIFRAS_KEY, JSON.stringify(exemplosCifras));
+  // Só adicionar exemplos se não há cifras no localStorage
+  // As cifras dos arquivos já serão carregadas automaticamente
+  console.log('Cifras dos arquivos carregadas. Exemplos do localStorage não são mais necessários.');
 }

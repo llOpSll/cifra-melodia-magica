@@ -3,15 +3,29 @@ import { useState, useEffect } from "react";
 import { CifraCard } from "../components/CifraCard";
 import { Link } from "react-router-dom";
 import { Music, List } from "lucide-react";
-import { getCifras, inicializarDadosExemplo } from "../utils/storage";
+import { getCifras, inicializarDadosExemplo, loadFileBasedCifras } from "../utils/storage";
 
 export default function Index() {
   const [busca, setBusca] = useState("");
   const [cifras, setCifras] = useState(getCifras());
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    inicializarDadosExemplo();
-    setCifras(getCifras());
+    async function carregarCifras() {
+      setCarregando(true);
+      
+      // Carregar cifras dos arquivos primeiro
+      await loadFileBasedCifras();
+      
+      // Inicializar dados de exemplo se necessário
+      inicializarDadosExemplo();
+      
+      // Atualizar estado com todas as cifras
+      setCifras(getCifras());
+      setCarregando(false);
+    }
+
+    carregarCifras();
   }, []);
 
   const cifrasFiltradas = cifras.filter(
@@ -19,6 +33,15 @@ export default function Index() {
       c.titulo.toLowerCase().includes(busca.toLowerCase()) ||
       c.artista.toLowerCase().includes(busca.toLowerCase())
   );
+
+  if (carregando) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg"
+           style={{ color: '#7F8CAA', background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>
+        Carregando cifras...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-12 px-2 font-sans"
@@ -68,7 +91,14 @@ export default function Index() {
           </div>
         )}
       </section>
-      <footer className="mt-20 text-sm text-center" style={{ color: '#7F8CAA' }}>
+      
+      {/* Indicador de fonte das cifras */}
+      <div className="mt-12 text-center text-sm" style={{ color: '#7F8CAA' }}>
+        {cifras.filter(c => c.id.startsWith('file-')).length} cifras do diretório CIFRAS/ • {' '}
+        {cifras.filter(c => !c.id.startsWith('file-')).length} cifras criadas no app
+      </div>
+      
+      <footer className="mt-8 text-sm text-center" style={{ color: '#7F8CAA' }}>
         © {new Date().getFullYear()} CifrasApp · Feito com amor 🎸
       </footer>
     </div>

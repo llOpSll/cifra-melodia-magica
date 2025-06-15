@@ -20,6 +20,15 @@ export default function CifraVisualizar() {
   function handleDelete() {
     if (!cifra) return;
     
+    // Verificar se é uma cifra de arquivo (read-only)
+    if (cifra.id.startsWith('file-')) {
+      toast({
+        title: "Esta cifra não pode ser excluída",
+        description: "Cifras do diretório CIFRAS/ são somente leitura.",
+      });
+      return;
+    }
+    
     if (confirm(`Tem certeza que deseja excluir a cifra "${cifra.titulo}"?`)) {
       const sucesso = deletarCifra(cifra.id);
       if (sucesso) {
@@ -45,6 +54,7 @@ export default function CifraVisualizar() {
 
   // Limpar o tom removendo qualquer "0" no final - função mais robusta
   const tomLimpo = cifra.tom.replace(/0+$/, '');
+  const isFromFile = cifra.id.startsWith('file-');
 
   return (
     <div className="min-h-screen py-8 px-2 font-sans" 
@@ -66,6 +76,9 @@ export default function CifraVisualizar() {
               {cifra.capotraste && cifra.capotraste > 0 && (
                 <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.capotraste}ª casa</span></>
               )}
+              {isFromFile && (
+                <> • <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded-full ml-2">Arquivo CIFRAS/</span></>
+              )}
             </div>
             <h1 className="text-3xl font-bold mb-1" style={{ color: '#333447' }}>{cifra.titulo}</h1>
             <div className="text-xl font-semibold" style={{ color: '#333447' }}>{cifra.artista}</div>
@@ -80,22 +93,26 @@ export default function CifraVisualizar() {
                 <Printer size={17} />
                 Imprimir
               </button>
-              <button
-                className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
-                style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
-                onClick={() => navigate(`/editar/${cifra.id}`)}
-              >
-                <Edit size={17} />
-                Editar
-              </button>
-              <button
-                className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
-                style={{ backgroundColor: '#333447' }}
-                onClick={handleDelete}
-              >
-                <Trash2 size={17} />
-                Excluir
-              </button>
+              {!isFromFile && (
+                <>
+                  <button
+                    className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                    style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
+                    onClick={() => navigate(`/editar/${cifra.id}`)}
+                  >
+                    <Edit size={17} />
+                    Editar
+                  </button>
+                  <button
+                    className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                    style={{ backgroundColor: '#333447' }}
+                    onClick={handleDelete}
+                  >
+                    <Trash2 size={17} />
+                    Excluir
+                  </button>
+                </>
+              )}
             </div>
             <div className="flex gap-2 mt-1">
               <button

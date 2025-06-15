@@ -1,0 +1,30 @@
+
+artista: Fernandinho
+titulo: Uma Nova História
+instrumento: Violão
+tom: G
+capotraste: 0
+
+Intro: [G]  [C]  [Em]  [D]
+
+[G]Deus está escrevendo uma nova his[C]tória
+[Em]Deus está fazendo uma nova obra em [D]mim
+[G]Eu posso sentir Seu poder que me trans[C]forma
+[Em]Por isso eu canto, por isso eu dan[D]ço
+
+[G]Aleluia, alelu[C]ia
+[Em]Cantarei ao Se[D]nhor
+[G]Aleluia, alelu[C]ia
+[Em]Dançarei ao Se[D]nhor
+
+[G]Não vou mais olhar para trás
+[C]O que passou, passou
+[Em]Deus está fazendo novas todas as [D]coisas
+[G]Não vou mais olhar para trás
+[C]O que passou, passou
+[Em]Deus está fazendo novas todas as [D]coisas
+
+[G]Aleluia, alelu[C]ia
+[Em]Cantarei ao Se[D]nhor
+[G]Aleluia, alelu[C]ia
+[Em]Dançarei ao Se[D]nhor
