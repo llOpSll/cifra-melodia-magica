@@ -13,26 +13,43 @@ export function parseCifraFile(filename: string, content: string): Cifra {
   let bpm = '';
   let videoYoutube = '';
   let cifraContent = '';
+  let parsingMetadata = true;
   
-  // Tentar extrair informações do conteúdo do arquivo
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
+  // Processar linha por linha
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
-    // Procurar por padrões comuns de título e artista
-    if (line.toLowerCase().includes('título:') || line.toLowerCase().includes('titulo:')) {
-      titulo = line.split(':')[1]?.trim() || '';
-    } else if (line.toLowerCase().includes('artista:')) {
-      artista = line.split(':')[1]?.trim() || '';
-    } else if (line.toLowerCase().includes('tom:')) {
-      tom = line.split(':')[1]?.trim() || 'C';
-    } else if (line.toLowerCase().includes('instrumento:')) {
-      instrumento = line.split(':')[1]?.trim() || 'Violão';
-    } else if (line.toLowerCase().includes('capotraste:')) {
-      capotraste = parseInt(line.split(':')[1]?.trim() || '0');
-    } else if (line.toLowerCase().includes('bpm:')) {
-      bpm = line.split(':')[1]?.trim() || '';
-    } else if (line.toLowerCase().includes('videoyoutube:')) {
-      videoYoutube = line.split(':')[1]?.trim() || '';
+    // Se linha vazia e estávamos parseando metadata, agora começamos o conteúdo
+    if (line === '' && parsingMetadata) {
+      parsingMetadata = false;
+      continue;
+    }
+    
+    if (parsingMetadata && line.includes(':')) {
+      // Melhor parsing para metadados - permite acentos e diferentes formatos
+      const colonIndex = line.indexOf(':');
+      const key = line.substring(0, colonIndex).trim().toLowerCase();
+      const value = line.substring(colonIndex + 1).trim();
+      
+      // Mapear chaves para variações comuns
+      if (key === 'artista') {
+        artista = value;
+      } else if (key === 'título' || key === 'titulo') {
+        titulo = value;
+      } else if (key === 'tom') {
+        tom = value;
+      } else if (key === 'instrumento') {
+        instrumento = value;
+      } else if (key === 'capotraste') {
+        capotraste = parseInt(value) || 0;
+      } else if (key === 'bpm') {
+        bpm = value;
+      } else if (key === 'videoyoutube' || key === 'video youtube' || key === 'youtube') {
+        videoYoutube = value;
+      }
+    } else if (!parsingMetadata) {
+      // Adicionar ao conteúdo da cifra
+      cifraContent += line + '\n';
     }
   }
   
@@ -64,27 +81,9 @@ export function parseCifraFile(filename: string, content: string): Cifra {
   if (!artista) artista = 'Artista Desconhecido';
   if (!titulo) titulo = filename.replace('.txt', '').replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   
-  // Identificar onde começa o conteúdo da cifra (após metadados)
-  let startContent = 0;
-  for (let i = 0; i < Math.min(15, lines.length); i++) {
-    const line = lines[i].trim();
-    if (line.includes(':') && !line.startsWith('[') && 
-        (line.toLowerCase().includes('titulo') || line.toLowerCase().includes('artista') || 
-         line.toLowerCase().includes('tom') || line.toLowerCase().includes('instrumento') || 
-         line.toLowerCase().includes('capotraste'))) {
-      startContent = i + 1;
-    } else if (line === '' && startContent > 0) {
-      // Pular linhas vazias após metadados
-      startContent = i + 1;
-    } else if (line !== '' && !line.includes(':')) {
-      // Encontrou conteúdo que não é metadado
-      break;
-    }
-  }
-  
   // Preservar quebras de linha originais do arquivo
   // Converter tags HTML básicas para preservar formatação
-  cifraContent = lines.slice(startContent).join('\n')
+  cifraContent = cifraContent
     .replace(/<br\s*\/?>/gi, '\n') // Converter <br> para quebra de linha
     .replace(/<strong>(.*?)<\/strong>/gi, '**$1**') // Converter <strong> para markdown bold
     .replace(/<b>(.*?)<\/b>/gi, '**$1**') // Converter <b> para markdown bold

@@ -3,13 +3,13 @@ import { Cifra } from './storage';
 
 // Função para exportar uma cifra como arquivo .txt
 export function exportarCifra(cifra: Cifra): void {
-  const conteudo = `artista: ${cifra.artista}
-titulo: ${cifra.titulo}
-instrumento: ${cifra.instrumento}
-tom: ${cifra.tom}
-capotraste: ${cifra.capotraste || 0}
-bpm: ${cifra.bpm || ''}
-videoYoutube: ${cifra.videoYoutube || ''}
+  const conteudo = `Artista: ${cifra.artista}
+Título: ${cifra.titulo}
+Instrumento: ${cifra.instrumento}
+Tom: ${cifra.tom}
+Capotraste: ${cifra.capotraste || 0}
+BPM: ${cifra.bpm || ''}
+VideoYoutube: ${cifra.videoYoutube || ''}
 
 ${cifra.cifra}`;
 
@@ -46,17 +46,36 @@ export function importarCifra(file: File): Promise<Cifra> {
         let cifraContent = '';
         let parsingMetadata = true;
 
-        for (const line of lines) {
-          if (parsingMetadata && line.includes(':') && !line.startsWith('[')) {
-            const [key, ...valueParts] = line.split(':');
-            metadata[key.trim().toLowerCase()] = valueParts.join(':').trim();
-          } else if (line.trim() === '' && parsingMetadata) {
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
+          // Se linha vazia e estávamos parseando metadata, agora começamos o conteúdo
+          if (line === '' && parsingMetadata) {
             parsingMetadata = false;
+            continue;
+          }
+          
+          if (parsingMetadata && line.includes(':')) {
+            // Melhor parsing para metadados - permite acentos e diferentes formatos
+            const colonIndex = line.indexOf(':');
+            const key = line.substring(0, colonIndex).trim().toLowerCase();
+            const value = line.substring(colonIndex + 1).trim();
+            
+            // Normalizar chaves para variações comuns
+            if (key === 'artista') metadata.artista = value;
+            else if (key === 'título' || key === 'titulo') metadata.titulo = value;
+            else if (key === 'tom') metadata.tom = value;
+            else if (key === 'instrumento') metadata.instrumento = value;
+            else if (key === 'capotraste') metadata.capotraste = value;
+            else if (key === 'bpm') metadata.bpm = value;
+            else if (key === 'videoyoutube' || key === 'video youtube' || key === 'youtube') metadata.videoyoutube = value;
           } else if (!parsingMetadata) {
+            // Adicionar ao conteúdo da cifra
             cifraContent += line + '\n';
           }
         }
 
+        // Fallbacks para campos obrigatórios
         const artista = metadata.artista || 'Artista Desconhecido';
         const titulo = metadata.titulo || file.name.replace('.txt', '');
         const instrumento = metadata.instrumento || 'Violão';
