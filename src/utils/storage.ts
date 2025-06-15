@@ -348,3 +348,6 @@ export function criarVersaoEditavel(cifraOriginal: Cifra): string {
   
   return novaCifra.id;
 }
+
+// Re-export function from repertorioFileReader for compatibility
+export { loadFileBasedRepertorios };
