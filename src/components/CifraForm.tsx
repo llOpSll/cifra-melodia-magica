@@ -4,11 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import slugify from "slugify";
 import { salvarCifra, atualizarCifra, getCifraById } from "../utils/storage";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type CifraDados = {
   artista: string;
   titulo: string;
-  instrumento: string;
+  instrumento: string[];
   tom: string;
   cifra: string;
   capotraste: number;
@@ -34,21 +35,31 @@ export function CifraForm({ cifraId }: Props) {
   const [form, setForm] = useState<CifraDados>({
     artista: cifraExistente?.artista || "",
     titulo: cifraExistente?.titulo || "",
-    instrumento: cifraExistente?.instrumento || "Violão",
+    instrumento: cifraExistente?.instrumento ? 
+      (Array.isArray(cifraExistente.instrumento) ? cifraExistente.instrumento : [cifraExistente.instrumento]) : 
+      ["Violão"],
     tom: cifraExistente?.tom || "",
     cifra: cifraExistente?.cifra || "",
     capotraste: cifraExistente?.capotraste || 0,
   });
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const value = e.target.name === 'capotraste' ? parseInt(e.target.value) : e.target.value;
     setForm({ ...form, [e.target.name]: value });
+  }
+
+  function handleInstrumentoChange(instrumento: string, checked: boolean) {
+    if (checked) {
+      setForm({ ...form, instrumento: [...form.instrumento, instrumento] });
+    } else {
+      setForm({ ...form, instrumento: form.instrumento.filter(i => i !== instrumento) });
+    }
   }
   
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!form.artista || !form.titulo || !form.tom || !form.cifra) {
+    if (!form.artista || !form.titulo || !form.tom || !form.cifra || form.instrumento.length === 0) {
       toast({
         title: "Por favor, preencha todos os campos obrigatórios.",
       });
@@ -58,9 +69,16 @@ export function CifraForm({ cifraId }: Props) {
     try {
       const slug = slugify(`${form.artista}-${form.titulo}`, {lower: true, strict: true});
       
+      // Converter array de instrumentos para string para compatibilidade
+      const dadosParaSalvar = {
+        ...form,
+        instrumento: form.instrumento.join(", "),
+        slug
+      };
+      
       if (cifraId) {
         // Editar cifra existente
-        const sucesso = atualizarCifra(cifraId, { ...form, slug });
+        const sucesso = atualizarCifra(cifraId, dadosParaSalvar);
         if (sucesso) {
           toast({
             title: "Cifra atualizada com sucesso!",
@@ -73,7 +91,7 @@ export function CifraForm({ cifraId }: Props) {
         }
       } else {
         // Criar nova cifra
-        salvarCifra({ ...form, slug });
+        salvarCifra(dadosParaSalvar);
         toast({
           title: "Cifra salva com sucesso!",
         });
@@ -101,14 +119,21 @@ export function CifraForm({ cifraId }: Props) {
           value={form.titulo} onChange={handleChange} />
       </div>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="instrumento">Instrumento *</label>
-        <select name="instrumento" id="instrumento"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          value={form.instrumento} onChange={handleChange}>
-          {instrumentos.map(i => (
-            <option key={i}>{i}</option>
+        <label className="font-semibold block mb-3">Instrumentos *</label>
+        <div className="grid grid-cols-2 gap-3">
+          {instrumentos.map(instrumento => (
+            <div key={instrumento} className="flex items-center space-x-2">
+              <Checkbox
+                id={instrumento}
+                checked={form.instrumento.includes(instrumento)}
+                onCheckedChange={(checked) => handleInstrumentoChange(instrumento, checked as boolean)}
+              />
+              <label htmlFor={instrumento} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {instrumento}
+              </label>
+            </div>
           ))}
-        </select>
+        </div>
       </div>
       <div>
         <label className="font-semibold block mb-1" htmlFor="tom">Tom original *</label>
@@ -121,7 +146,8 @@ export function CifraForm({ cifraId }: Props) {
         <label className="font-semibold block mb-1" htmlFor="capotraste">Capotraste (casa)</label>
         <select name="capotraste" id="capotraste"
           className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          value={form.capotraste} onChange={handleChange}>
+          value={form.capotraste} 
+          onChange={(e) => setForm({ ...form, capotraste: parseInt(e.target.value) })}>
           <option value={0}>Sem capotraste</option>
           {[1,2,3,4,5,6,7,8,9,10,11,12].map(casa => (
             <option key={casa} value={casa}>{casa}ª casa</option>

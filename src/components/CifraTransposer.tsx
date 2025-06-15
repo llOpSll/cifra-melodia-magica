@@ -22,8 +22,11 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
     setCapotraste(prev => Math.max(0, Math.min(prev + dir, 12)));
   }
 
+  // Limpar o tom original removendo qualquer "0" no final
+  const tomLimpo = tomOriginal.replace(/0$/, '');
+
   // Calcular tom atual considerando capotraste E transposição
-  let tomAtual = tomOriginal;
+  let tomAtual = tomLimpo;
   
   if (capotraste > 0) {
     tomAtual = obterTomComCapo(tomAtual, capotraste);
