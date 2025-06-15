@@ -17,16 +17,38 @@ import LegacyApp from "./legacy/LegacyApp";
 
 const queryClient = new QueryClient();
 
-// Detectar iPad 2 pelo User Agent
+// Detectar iPad 2 pelo User Agent - versão mais robusta
 function isIPad2() {
-  var userAgent = navigator.userAgent;
-  // iPad 2 roda iOS 9 e tem características específicas
-  return userAgent.indexOf('iPad') !== -1 && 
-         (userAgent.indexOf('OS 9_') !== -1 || userAgent.indexOf('OS 8_') !== -1 || userAgent.indexOf('OS 7_') !== -1);
+  try {
+    const userAgent = navigator.userAgent;
+    
+    // Detectar iPad
+    const isIPad = userAgent.indexOf('iPad') !== -1;
+    if (!isIPad) return false;
+    
+    // Detectar versões antigas do iOS (compatíveis com iPad 2)
+    const isOldIOS = userAgent.indexOf('OS 9_') !== -1 || 
+                     userAgent.indexOf('OS 8_') !== -1 || 
+                     userAgent.indexOf('OS 7_') !== -1 ||
+                     userAgent.indexOf('OS 6_') !== -1 ||
+                     userAgent.indexOf('OS 5_') !== -1;
+    
+    // Detectar recursos limitados (iPad 2 tem menos recursos)
+    const hasLimitedSupport = !window.indexedDB || 
+                              !window.Worker || 
+                              !document.querySelector ||
+                              typeof Promise === 'undefined';
+    
+    return isOldIOS || hasLimitedSupport;
+  } catch (error) {
+    // Em caso de erro, assumir dispositivo moderno
+    console.log('Erro na detecção do dispositivo:', error);
+    return false;
+  }
 }
 
 const App = () => {
-  // Se for iPad 2, usar versão legacy
+  // Se for iPad 2 ou dispositivo com recursos limitados, usar versão legacy
   if (isIPad2()) {
     return <LegacyApp />;
   }

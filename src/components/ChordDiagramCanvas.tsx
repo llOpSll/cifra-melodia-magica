@@ -17,35 +17,35 @@ export function ChordDiagramCanvas({ chord, chordData, stringNames }: ChordDiagr
   const displayStartFret = startFret > 1 ? startFret : 1;
 
   return (
-    <Card className="w-32 shadow-sm border" style={{ borderColor: '#E5E7EB' }}>
-      <CardContent className="p-3">
+    <Card className="w-28 shadow-sm border" style={{ borderColor: '#E5E7EB' }}>
+      <CardContent className="p-2">
         <div className="text-center">
-          <div className="font-semibold text-sm mb-2" style={{ color: '#374151' }}>
+          <div className="font-semibold text-xs mb-2" style={{ color: '#374151' }}>
             {chord}
           </div>
           
           {/* Diagram Container */}
-          <div className="relative mx-auto" style={{ width: '90px' }}>
+          <div className="relative mx-auto" style={{ width: '80px' }}>
             {/* String names at top */}
-            <div className="flex justify-between text-xs mb-2" style={{ color: '#6B7280' }}>
+            <div className="flex justify-between text-xs mb-1" style={{ color: '#6B7280' }}>
               {stringNames.map((string, i) => (
-                <span key={i} className="w-3 text-center">{string}</span>
+                <span key={i} className="text-center" style={{ width: '10px' }}>{string}</span>
               ))}
             </div>
             
             {/* Open/Muted indicators */}
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-1" style={{ paddingLeft: '1px', paddingRight: '1px' }}>
               {frets.map((fret, stringIndex) => {
                 const isOpen = fret === 0;
                 const isMuted = fret === -1;
                 
                 return (
-                  <div key={stringIndex} className="w-3 h-3 flex items-center justify-center">
+                  <div key={stringIndex} className="flex items-center justify-center" style={{ width: '10px', height: '12px' }}>
                     {isOpen && (
-                      <div className="w-2.5 h-2.5 border-2 border-green-500 rounded-full bg-white"></div>
+                      <div className="border-2 border-green-500 rounded-full bg-white" style={{ width: '8px', height: '8px' }}></div>
                     )}
                     {isMuted && (
-                      <div className="text-red-500 text-sm font-bold">×</div>
+                      <div className="text-red-500 font-bold" style={{ fontSize: '10px' }}>×</div>
                     )}
                   </div>
                 );
@@ -54,46 +54,50 @@ export function ChordDiagramCanvas({ chord, chordData, stringNames }: ChordDiagr
             
             {/* Fret position indicator */}
             {displayStartFret > 1 && (
-              <div className="absolute -left-6 top-8 text-xs font-medium bg-white px-1 rounded border" style={{ color: '#6B7280' }}>
+              <div className="absolute text-xs font-medium bg-white px-1 rounded border" style={{ 
+                color: '#6B7280', 
+                left: '-18px', 
+                top: '24px' 
+              }}>
                 {displayStartFret}
               </div>
             )}
             
-            {/* Compact Fretboard */}
+            {/* Fretboard with precise positioning */}
             <div 
               className="border-2 relative rounded-sm" 
               style={{ 
-                height: '100px', 
-                width: '100%',
+                height: '80px', 
+                width: '80px',
                 background: 'linear-gradient(to bottom, #FEF3E2 0%, #FDE68A 100%)',
                 borderColor: '#D97706'
               }}
             >
               {/* Nut (thicker line for first fret) */}
               {displayStartFret === 1 && (
-                <div className="absolute w-full bg-gray-800" style={{ height: '3px', top: '0px' }} />
+                <div className="absolute w-full bg-gray-800" style={{ height: '2px', top: '0px' }} />
               )}
               
-              {/* Fret lines */}
-              {[...Array(5)].map((_, fretIndex) => (
+              {/* Fret lines - positioned precisely */}
+              {[1, 2, 3, 4].map((fretIndex) => (
                 <div 
                   key={fretIndex} 
                   className="absolute w-full bg-gray-600"
                   style={{ 
-                    height: '1.5px',
-                    top: `${((fretIndex + 1) * 100) / 5}%`
+                    height: '1px',
+                    top: `${(fretIndex * 20)}px`
                   }}
                 />
               ))}
               
-              {/* String lines */}
-              {[...Array(stringNames.length)].map((_, stringIndex) => (
+              {/* String lines - positioned precisely */}
+              {stringNames.map((_, stringIndex) => (
                 <div 
                   key={stringIndex}
                   className="absolute h-full bg-gray-400"
                   style={{ 
-                    width: '1.5px',
-                    left: `${((stringIndex * 100) / (stringNames.length - 1))}%`
+                    width: '1px',
+                    left: `${stringIndex * (78 / (stringNames.length - 1))}px`
                   }}
                 />
               ))}
@@ -101,12 +105,12 @@ export function ChordDiagramCanvas({ chord, chordData, stringNames }: ChordDiagr
               {/* Barres */}
               {barres.map((barre, barreIndex) => {
                 const fretPosition = barre.fret - displayStartFret + 1;
-                if (fretPosition < 1 || fretPosition > 5) return null;
+                if (fretPosition < 1 || fretPosition > 4) return null;
                 
                 const leftString = Math.min(barre.fromString, barre.toString) - 1;
                 const rightString = Math.max(barre.fromString, barre.toString) - 1;
-                const leftPercent = (leftString * 100) / (stringNames.length - 1);
-                const rightPercent = (rightString * 100) / (stringNames.length - 1);
+                const leftPos = leftString * (78 / (stringNames.length - 1));
+                const rightPos = rightString * (78 / (stringNames.length - 1));
                 
                 return (
                   <div
@@ -114,30 +118,32 @@ export function ChordDiagramCanvas({ chord, chordData, stringNames }: ChordDiagr
                     className="absolute rounded-full border border-white"
                     style={{
                       background: 'linear-gradient(135deg, #374151 0%, #4B5563 100%)',
-                      height: '12px',
-                      left: `${leftPercent}%`,
-                      width: `${rightPercent - leftPercent}%`,
-                      top: `${((fretPosition - 0.5) * 100) / 5 - 6}%`,
+                      height: '8px',
+                      left: `${leftPos}px`,
+                      width: `${rightPos - leftPos + 2}px`,
+                      top: `${(fretPosition - 0.5) * 20 - 4}px`,
                       zIndex: 10
                     }}
                   />
                 );
               })}
               
-              {/* Finger positions */}
+              {/* Finger positions - positioned precisely */}
               {frets.map((fret, stringIndex) => {
                 if (fret <= 0) return null;
                 
                 const fingerNumber = fingers[stringIndex];
                 const fretPosition = fret - displayStartFret + 1;
                 
-                if (fretPosition < 1 || fretPosition > 5) return null;
+                if (fretPosition < 1 || fretPosition > 4) return null;
                 
                 const isPartOfBarre = barres.some(barre => 
                   barre.fret === fret && 
                   stringIndex + 1 >= Math.min(barre.fromString, barre.toString) &&
                   stringIndex + 1 <= Math.max(barre.fromString, barre.toString)
                 );
+                
+                const stringPos = stringIndex * (78 / (stringNames.length - 1));
                 
                 return (
                   <div
@@ -147,11 +153,12 @@ export function ChordDiagramCanvas({ chord, chordData, stringNames }: ChordDiagr
                       background: isPartOfBarre 
                         ? 'linear-gradient(135deg, #374151 0%, #4B5563 100%)' 
                         : 'linear-gradient(135deg, #1F2937 0%, #374151 100%)',
-                      width: '18px',
-                      height: '18px',
-                      left: `${((stringIndex * 100) / (stringNames.length - 1)) - 9}px`,
-                      top: `${((fretPosition - 0.5) * 100) / 5 - 9}%`,
-                      zIndex: 20
+                      width: '12px',
+                      height: '12px',
+                      left: `${stringPos - 6}px`,
+                      top: `${(fretPosition - 0.5) * 20 - 6}px`,
+                      zIndex: 20,
+                      fontSize: '8px'
                     }}
                   >
                     {!isPartOfBarre && fingerNumber > 0 ? fingerNumber : ''}
@@ -161,13 +168,13 @@ export function ChordDiagramCanvas({ chord, chordData, stringNames }: ChordDiagr
             </div>
             
             {/* Simplified legend */}
-            <div className="mt-2 text-xs flex items-center justify-center gap-3" style={{ color: '#9CA3AF' }}>
+            <div className="mt-1 text-xs flex items-center justify-center gap-2" style={{ color: '#9CA3AF', fontSize: '9px' }}>
               <span className="flex items-center gap-1">
-                <div className="w-2 h-2 border border-green-500 rounded-full bg-white"></div>
+                <div className="border border-green-500 rounded-full bg-white" style={{ width: '6px', height: '6px' }}></div>
                 Solta
               </span>
               <span className="flex items-center gap-1">
-                <span className="text-red-500 font-bold text-xs">×</span>
+                <span className="text-red-500 font-bold" style={{ fontSize: '8px' }}>×</span>
                 Muda
               </span>
             </div>
