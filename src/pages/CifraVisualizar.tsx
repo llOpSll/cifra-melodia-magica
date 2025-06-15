@@ -43,6 +43,9 @@ export default function CifraVisualizar() {
     );
   }
 
+  // Limpar o tom removendo qualquer "0" no final
+  const tomLimpo = cifra.tom.replace(/0$/, '');
+
   return (
     <div className="min-h-screen py-8 px-2 font-sans" 
          style={{ background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>
@@ -59,7 +62,7 @@ export default function CifraVisualizar() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <div className="uppercase tracking-wide text-xs font-semibold mb-2" style={{ color: '#7F8CAA' }}>
-              {cifra.instrumento} • Tom <span className="font-bold" style={{ color: '#333447' }}>{cifra.tom}</span>
+              {cifra.instrumento} • Tom <span className="font-bold" style={{ color: '#333447' }}>{tomLimpo}</span>
               {cifra.capotraste && cifra.capotraste > 0 && (
                 <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.capotraste}ª casa</span></>
               )}
@@ -114,7 +117,7 @@ export default function CifraVisualizar() {
 
         <CifraTransposer
           cifra={cifra.cifra}
-          tomOriginal={cifra.tom}
+          tomOriginal={tomLimpo}
           fontSize={fontSize}
           capotrasteInicial={cifra.capotraste || 0}
         />
