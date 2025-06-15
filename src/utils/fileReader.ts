@@ -5,26 +5,76 @@ import slugify from 'slugify';
 // Função para parsear o conteúdo de um arquivo de cifra
 export function parseCifraFile(filename: string, content: string): Cifra {
   const lines = content.split('\n');
-  const metadata: Record<string, string> = {};
+  let titulo = '';
+  let artista = '';
+  let instrumento = 'Violão';
+  let tom = 'C';
+  let capotraste = 0;
   let cifraContent = '';
-  let parsingMetadata = true;
-
-  for (const line of lines) {
-    if (parsingMetadata && line.includes(':') && !line.startsWith('[')) {
-      const [key, ...valueParts] = line.split(':');
-      metadata[key.trim().toLowerCase()] = valueParts.join(':').trim();
-    } else if (line.trim() === '' && parsingMetadata) {
-      parsingMetadata = false;
-    } else if (!parsingMetadata) {
-      cifraContent += line + '\n';
+  
+  // Tentar extrair informações do conteúdo do arquivo
+  for (let i = 0; i < Math.min(10, lines.length); i++) {
+    const line = lines[i].trim();
+    
+    // Procurar por padrões comuns de título e artista
+    if (line.toLowerCase().includes('título:') || line.toLowerCase().includes('titulo:')) {
+      titulo = line.split(':')[1]?.trim() || '';
+    } else if (line.toLowerCase().includes('artista:')) {
+      artista = line.split(':')[1]?.trim() || '';
+    } else if (line.toLowerCase().includes('tom:')) {
+      tom = line.split(':')[1]?.trim() || 'C';
+    } else if (line.toLowerCase().includes('instrumento:')) {
+      instrumento = line.split(':')[1]?.trim() || 'Violão';
+    } else if (line.toLowerCase().includes('capotraste:')) {
+      capotraste = parseInt(line.split(':')[1]?.trim() || '0');
     }
   }
-
-  const artista = metadata.artista || 'Artista Desconhecido';
-  const titulo = metadata.titulo || filename.replace('.txt', '');
-  const instrumento = metadata.instrumento || 'Violão';
-  const tom = metadata.tom || 'C';
-  const capotraste = parseInt(metadata.capotraste || '0');
+  
+  // Se não encontrou título e artista nos metadados, extrair do nome do arquivo
+  if (!titulo || !artista) {
+    const filenameParts = filename.replace('.txt', '').split('-');
+    if (filenameParts.length >= 2) {
+      // Primeiro parte é o artista, resto é o título
+      if (!artista) {
+        artista = filenameParts[0]
+          .split(/(?=[A-Z])/) // Dividir por maiúsculas
+          .join(' ')
+          .replace(/\b\w/g, l => l.toUpperCase()) // Capitalizar
+          .trim();
+      }
+      if (!titulo) {
+        titulo = filenameParts.slice(1).join(' ')
+          .replace(/[-_]/g, ' ')
+          .split(/(?=[A-Z])/) // Dividir por maiúsculas  
+          .join(' ')
+          .replace(/\b\w/g, l => l.toUpperCase()) // Capitalizar
+          .replace(/\s+/g, ' ') // Remover espaços duplos
+          .trim();
+      }
+    }
+  }
+  
+  // Fallbacks se ainda não tiver informações
+  if (!artista) artista = 'Artista Desconhecido';
+  if (!titulo) titulo = filename.replace('.txt', '').replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  
+  // Pegar todo o conteúdo como cifra (removendo apenas linhas de metadados do início)
+  let startContent = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.includes(':') && !line.startsWith('[') && i < 10 && 
+        (line.toLowerCase().includes('titulo') || line.toLowerCase().includes('artista') || 
+         line.toLowerCase().includes('tom') || line.toLowerCase().includes('instrumento') || 
+         line.toLowerCase().includes('capotraste'))) {
+      startContent = i + 1;
+    } else if (line === '' && i < 10) {
+      continue;
+    } else {
+      break;
+    }
+  }
+  
+  cifraContent = lines.slice(startContent).join('\n').trim();
 
   const agora = new Date().toISOString();
   const slug = slugify(`${artista}-${titulo}`, { lower: true, strict: true });
@@ -35,7 +85,7 @@ export function parseCifraFile(filename: string, content: string): Cifra {
     titulo,
     instrumento,
     tom,
-    cifra: cifraContent.trim(),
+    cifra: cifraContent,
     slug,
     capotraste,
     criadaEm: agora,
