@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +12,8 @@ type CifraDados = {
   tom: string;
   cifra: string;
   capotraste: number;
+  bpm: number;
+  videoYoutube: string;
 };
 
 const instrumentos = [
@@ -41,10 +42,12 @@ export function CifraForm({ cifraId }: Props) {
     tom: cifraExistente?.tom || "",
     cifra: cifraExistente?.cifra || "",
     capotraste: cifraExistente?.capotraste || 0,
+    bpm: cifraExistente?.bpm || 0,
+    videoYoutube: cifraExistente?.videoYoutube || "",
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const value = e.target.name === 'capotraste' ? parseInt(e.target.value) : e.target.value;
+    const value = e.target.name === 'capotraste' || e.target.name === 'bpm' ? parseInt(e.target.value) : e.target.value;
     setForm({ ...form, [e.target.name]: value });
   }
 
@@ -73,6 +76,8 @@ export function CifraForm({ cifraId }: Props) {
       const dadosParaSalvar = {
         ...form,
         instrumento: form.instrumento.join(", "),
+        bpm: form.bpm || undefined,
+        videoYoutube: form.videoYoutube || undefined,
         slug
       };
       
@@ -146,18 +151,38 @@ export function CifraForm({ cifraId }: Props) {
           style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
           value={form.tom} onChange={handleChange} />
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="font-semibold block mb-1" htmlFor="capotraste" style={{ color: '#333447' }}>Capotraste (casa)</label>
+          <select name="capotraste" id="capotraste"
+            className="w-full rounded-lg px-3 py-2 border"
+            style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
+            value={form.capotraste} 
+            onChange={(e) => setForm({ ...form, capotraste: parseInt(e.target.value) })}>
+            <option value={0}>Sem capotraste</option>
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map(casa => (
+              <option key={casa} value={casa}>{casa}ª casa</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="font-semibold block mb-1" htmlFor="bpm" style={{ color: '#333447' }}>BPM</label>
+          <input type="number" name="bpm" id="bpm"
+            placeholder="Ex: 120"
+            min="0"
+            max="300"
+            className="w-full rounded-lg px-3 py-2 border"
+            style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
+            value={form.bpm || ''} onChange={handleChange} />
+        </div>
+      </div>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="capotraste" style={{ color: '#333447' }}>Capotraste (casa)</label>
-        <select name="capotraste" id="capotraste"
+        <label className="font-semibold block mb-1" htmlFor="videoYoutube" style={{ color: '#333447' }}>Vídeo do YouTube (opcional)</label>
+        <input type="url" name="videoYoutube" id="videoYoutube"
+          placeholder="Ex: https://www.youtube.com/watch?v=..."
           className="w-full rounded-lg px-3 py-2 border"
           style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
-          value={form.capotraste} 
-          onChange={(e) => setForm({ ...form, capotraste: parseInt(e.target.value) })}>
-          <option value={0}>Sem capotraste</option>
-          {[1,2,3,4,5,6,7,8,9,10,11,12].map(casa => (
-            <option key={casa} value={casa}>{casa}ª casa</option>
-          ))}
-        </select>
+          value={form.videoYoutube} onChange={handleChange} />
       </div>
       <div>
         <label className="font-semibold block mb-1" htmlFor="cifra" style={{ color: '#333447' }}>Cifra/Tab *</label>

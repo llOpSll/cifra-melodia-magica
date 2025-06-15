@@ -1,3 +1,4 @@
+
 // Sistema de armazenamento local para cifras
 export interface Cifra {
   id: string;
@@ -8,6 +9,8 @@ export interface Cifra {
   cifra: string;
   slug: string;
   capotraste?: number; // Casa do capotraste
+  bpm?: number; // BPM da música
+  videoYoutube?: string; // URL do vídeo do YouTube
   criadaEm: string;
   atualizadaEm: string;
 }
