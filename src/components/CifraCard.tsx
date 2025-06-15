@@ -1,16 +1,9 @@
 
 import { Link } from "react-router-dom";
+import { Cifra } from "../utils/storage";
 
 type Props = {
-  cifra: {
-    id: number;
-    artista: string;
-    titulo: string;
-    instrumento: string;
-    tom: string;
-    slug: string;
-    cifra: string;
-  };
+  cifra: Cifra;
 };
 
 export function CifraCard({ cifra }: Props) {
