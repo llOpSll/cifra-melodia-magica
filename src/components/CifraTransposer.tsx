@@ -10,8 +10,8 @@ type Props = {
 };
 
 export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
-  const [transposicao, setTransposicao] = useState(0); // semitons de transposição
-  const [capotraste, setCapotraste] = useState(0); // casa do capotraste
+  const [transposicao, setTransposicao] = useState(0);
+  const [capotraste, setCapotraste] = useState(0);
 
   function transpor(dir: number) {
     setTransposicao(prev => (prev + dir + 12) % 12);
@@ -24,12 +24,10 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
   // Calcular tom atual considerando capotraste E transposição
   let tomAtual = tomOriginal;
   
-  // Primeiro aplica capotraste no tom
   if (capotraste > 0) {
     tomAtual = obterTomComCapo(tomAtual, capotraste);
   }
   
-  // Depois aplica transposição no tom
   if (transposicao !== 0) {
     tomAtual = transporTom(tomAtual, transposicao);
   }
@@ -37,12 +35,10 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
   // Aplicar transformações na cifra
   let cifraTrabalhada = cifra;
   
-  // Primeiro aplica capotraste na cifra (se houver)
   if (capotraste > 0) {
     cifraTrabalhada = aplicarCapotraste(cifraTrabalhada, capotraste);
   }
   
-  // Depois aplica transposição na cifra
   if (transposicao !== 0) {
     cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
   }
@@ -61,16 +57,21 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     if (!trimmed) return false;
     
     const parts = trimmed.split(/\s+/);
-    return parts.every(part => /^[A-G][#b]?[0-9a-zA-Z/]*$/.test(part));
+    return parts.every(part => /^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part));
   }
 
   // Parsea cifra para destacar acordes e tablaturas
   function renderLinha(l: string, idx: number) {
-    // Se for uma linha de tablatura, renderizar com estilo especial
+    // Se for uma linha de tablatura, renderizar com estilo discreto
     if (isTabLine(l)) {
       return (
-        <div key={idx} className="whitespace-pre font-mono text-blue-700 bg-blue-50 rounded px-2 py-1 my-1">
-          <span style={{ fontSize: fontSize * 0.9 + "px" }}>{l}</span>
+        <div key={idx} className="whitespace-pre" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+          <span 
+            style={{ fontSize: fontSize * 0.9 + "px" }}
+            dangerouslySetInnerHTML={{
+              __html: l.replace(/(\d+)/g, '<span style="color: #2563eb; font-weight: 600;">$1</span>')
+            }}
+          />
         </div>
       );
     }
@@ -78,12 +79,12 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     // Se for uma linha só de acordes, destacar todos
     if (isChordOnlyLine(l)) {
       return (
-        <div key={idx} className="whitespace-pre-wrap leading-snug">
+        <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace' }}>
           {l.split(/(\s+)/).map((part, j) => {
             if (/^\s+$/.test(part)) {
               return <span key={j}>{part}</span>;
             }
-            if (/^[A-G][#b]?[0-9a-zA-Z/]*$/.test(part.trim()) && part.trim()) {
+            if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part.trim()) && part.trim()) {
               return (
                 <span
                   key={j}
@@ -102,11 +103,11 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
 
     // Para linhas mistas (acordes + letra), destacar acordes no meio do texto
     return (
-      <div key={idx} className="whitespace-pre-wrap leading-snug">
-        {l.split(/(\b[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+)?(?:\/[A-G][#b]?)?)\b/).map((part, j) => {
+      <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+        {l.split(/(\b[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?)\b/i).map((part, j) => {
           // Se a parte é um acorde, destacar
-          if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+)?(?:\/[A-G][#b]?)?$/.test(part) && part.trim() && 
-              !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves)/i.test(part)) {
+          if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part) && part.trim() && 
+              !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves|casa|dia|ano|mes|vez|bem|mal|sim|nao|mas|seu|sua|meu|minha|nosso|nossa|dele|dela|deles|delas)/i.test(part)) {
             return (
               <span
                 key={j}
@@ -193,7 +194,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
       {/* Cifra */}
       <div
         className="border border-green-200 rounded-xl p-4 bg-white/80 shadow-inner"
-        style={{ fontSize: fontSize + "px", fontFamily: "monospace" }}
+        style={{ fontSize: fontSize + "px" }}
       >
         {cifraTrabalhada.split("\n").map(renderLinha)}
       </div>

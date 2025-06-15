@@ -1,4 +1,3 @@
-
 const tonsOrdem = [
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 ];
@@ -10,7 +9,6 @@ const enhar = {
 };
 
 function normalizaTom(t: string): string {
-  // Extrair apenas a nota fundamental (sem menor/maior ou outras extensões)
   const match = t.match(/^([A-G][#b]?)/);
   if (!match) return t;
   
@@ -20,9 +18,10 @@ function normalizaTom(t: string): string {
 }
 
 function transpAcorde(acorde: string, semitons: number): string {
-  // Match nota + opcional #/b + resto (acorde extenso com / baixo, etc)
-  const match = acorde.match(/^([A-G][#b]?)(.*)/);
+  // Regex mais robusta para capturar acordes complexos
+  const match = acorde.match(/^([A-G][#b]?)(.*)$/);
   if (!match) return acorde;
+  
   let [_, nota, resto] = match;
   
   // Transpor nota principal
@@ -31,19 +30,16 @@ function transpAcorde(acorde: string, semitons: number): string {
   let novoIdx = (idx + semitons + 12) % 12;
   let notaNova = tonsOrdem[novoIdx];
   
-  // Transpor baixo se houver: Ex: A/C#
+  // Processar inversões (baixo após /)
   if (resto && resto.includes("/")) {
-    const partes = resto.split("/");
-    const baixoParte = partes[1];
-    const baixoMatch = baixoParte.match(/^([A-G][#b]?)/);
-    if (baixoMatch) {
-      const baixoNota = baixoMatch[1];
+    resto = resto.replace(/\/([A-G][#b]?)/g, (match, baixoNota) => {
       let idxBaixo = tonsOrdem.indexOf(normalizaTom(baixoNota));
       if (idxBaixo > -1) {
         let novoBaixo = tonsOrdem[(idxBaixo + semitons + 12) % 12];
-        return notaNova + partes[0] + "/" + novoBaixo + baixoParte.substring(baixoMatch[1].length);
+        return "/" + novoBaixo;
       }
-    }
+      return match;
+    });
   }
   
   return notaNova + resto;
@@ -51,26 +47,23 @@ function transpAcorde(acorde: string, semitons: number): string {
 
 // Função para detectar se uma linha é tablatura
 function isTabLine(line: string): boolean {
-  // Verifica se a linha contém padrões típicos de tablatura
-  const tabPattern = /^[EADGBEeadgbe]\|.*\|/; // Começa com nota da corda e tem pipes
-  const numberPattern = /\d+/; // Contém números
-  const pipePattern = /\|.*\|/; // Tem pipes de início e fim
+  const tabPattern = /^[EADGBEeadgbe]\|.*\|/;
+  const numberPattern = /\d+/;
+  const pipePattern = /\|.*\|/;
   
   return (tabPattern.test(line) || pipePattern.test(line)) && numberPattern.test(line);
 }
 
-// Função para detectar se uma linha contém apenas acordes (sem letra)
+// Função para detectar se uma linha contém apenas acordes
 function isChordOnlyLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
   
-  // Remove espaços extras e divide por espaços
   const parts = trimmed.split(/\s+/);
   
-  // Verifica se todos os elementos são acordes
   return parts.every(part => {
-    // Padrão para acordes: nota + opcional #/b + extensões opcionais
-    return /^[A-G][#b]?[0-9a-zA-Z/]*$/.test(part);
+    // Padrão mais abrangente para acordes com graus e inversões
+    return /^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part);
   });
 }
 
@@ -83,7 +76,6 @@ function transposeTabLine(line: string, semitons: number): string {
     if (isNaN(casa)) return match;
     
     const novaCasa = casa + semitons;
-    // Limita entre 0 e 24 (casas razoáveis no braço da guitarra)
     return Math.max(0, Math.min(novaCasa, 24)).toString();
   });
 }
@@ -94,23 +86,18 @@ export function transporCifra(cifra: string, semitons: number): string {
   
   const linhas = cifra.split('\n');
   const linhasTranspostas = linhas.map(linha => {
-    // Se for uma linha de tablatura, transpor os números mas NÃO as letras das cordas
+    // Se for uma linha de tablatura, transpor apenas os números
     if (isTabLine(linha)) {
       return transposeTabLine(linha, semitons);
     }
     
-    // Para todas as outras linhas, transpor acordes identificados
-    // Regex mais restritivo para evitar alterar palavras comuns
-    return linha.replace(/\b([A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+)?(?:\/[A-G][#b]?)?)\b/g, (match, acorde) => {
-      // Verificações adicionais para garantir que é realmente um acorde
-      // Não transpor se for parte de uma palavra maior ou se estiver em contextos específicos
+    // Regex mais abrangente para acordes com graus e inversões
+    return linha.replace(/\b([A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?)\b/gi, (match, acorde) => {
+      // Verificar se é realmente um acorde e não uma palavra comum
       if (
-        // Deve começar com uma nota
-        /^[A-G][#b]?/.test(acorde) &&
-        // Não deve ser uma palavra comum que termina com nota musical
-        !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves)/i.test(match) &&
-        // Deve ter o padrão de um acorde
-        acorde.length >= 1 && acorde.length <= 10
+        /^[A-G][#b]?/i.test(acorde) &&
+        !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves|casa|dia|ano|mes|vez|bem|mal|sim|nao|mas|seu|sua|meu|minha|nosso|nossa|dele|dela|deles|delas)/i.test(match.toLowerCase()) &&
+        acorde.length >= 1 && acorde.length <= 15
       ) {
         return transpAcorde(acorde, semitons);
       }
@@ -123,7 +110,6 @@ export function transporCifra(cifra: string, semitons: number): string {
 
 // Função para transpor um tom específico (incluindo acordes menores)
 export function transporTom(tom: string, semitons: number): string {
-  // Extrair a nota fundamental e o resto (m, 7, etc.)
   const match = tom.match(/^([A-G][#b]?)(.*)/);
   if (!match) return tom;
   
@@ -141,7 +127,6 @@ export function transporTom(tom: string, semitons: number): string {
 export function aplicarCapotraste(cifra: string, casaCapo: number): string {
   if (casaCapo === 0) return cifra;
   
-  // Capotraste equivale a transpor para baixo
   return transporCifra(cifra, -casaCapo);
 }
 
