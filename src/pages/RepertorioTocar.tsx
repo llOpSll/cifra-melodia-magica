@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CifraTransposer } from "../components/CifraTransposer";
-import { ArrowLeft, Music } from "lucide-react";
+import { ArrowLeft, Music, Play } from "lucide-react";
 import { getRepertorioById, getCifraById } from "../utils/storage";
 import type { Cifra } from "../utils/storage";
 
@@ -101,9 +101,26 @@ export default function RepertorioTocar() {
                 {cifraAtualObj.capotraste && cifraAtualObj.capotraste > 0 && (
                   <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifraAtualObj.capotraste}ª casa</span></>
                 )}
+                {cifraAtualObj.bpm && cifraAtualObj.bpm > 0 && (
+                  <> • BPM <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifraAtualObj.bpm}</span></>
+                )}
               </div>
               <h2 className="text-2xl font-bold mb-1" style={{ color: '#333447' }}>{cifraAtualObj.titulo}</h2>
               <div className="text-lg font-semibold" style={{ color: '#333447' }}>{cifraAtualObj.artista}</div>
+              {cifraAtualObj.videoYoutube && (
+                <div className="mt-3">
+                  <a 
+                    href={cifraAtualObj.videoYoutube} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg border hover:opacity-80 transition-all"
+                    style={{ backgroundColor: '#B8CFCE', color: '#333447', borderColor: '#7F8CAA' }}
+                  >
+                    <Play size={14} />
+                    Ver no YouTube
+                  </a>
+                </div>
+              )}
             </div>
             
             <CifraTransposer

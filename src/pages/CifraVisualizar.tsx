@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CifraTransposer } from "../components/CifraTransposer";
-import { ArrowLeft, Printer, Edit, Trash2, Download, EyeOff } from "lucide-react";
+import { ArrowLeft, Printer, Edit, Trash2, Download, EyeOff, Play } from "lucide-react";
 import { getCifraBySlug, deletarCifra, criarVersaoEditavel, ocultarCifra } from "../utils/storage";
 import { exportarCifra } from "../utils/fileOperations";
 import { toast } from "@/hooks/use-toast";
@@ -119,12 +119,29 @@ export default function CifraVisualizar() {
               {cifra.capotraste && cifra.capotraste > 0 && (
                 <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.capotraste}ª casa</span></>
               )}
+              {cifra.bpm && cifra.bpm > 0 && (
+                <> • BPM <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.bpm}</span></>
+              )}
               {isFromFile && (
                 <> • <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded-full ml-2">Arquivo CIFRAS/</span></>
               )}
             </div>
             <h1 className="text-3xl font-bold mb-1" style={{ color: '#333447' }}>{cifra.titulo}</h1>
             <div className="text-xl font-semibold" style={{ color: '#333447' }}>{cifra.artista}</div>
+            {cifra.videoYoutube && (
+              <div className="mt-3">
+                <a 
+                  href={cifra.videoYoutube} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg border hover:opacity-80 transition-all"
+                  style={{ backgroundColor: '#B8CFCE', color: '#333447', borderColor: '#7F8CAA' }}
+                >
+                  <Play size={14} />
+                  Ver no YouTube
+                </a>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2 flex-wrap">

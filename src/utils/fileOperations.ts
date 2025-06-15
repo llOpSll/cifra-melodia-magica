@@ -8,6 +8,8 @@ titulo: ${cifra.titulo}
 instrumento: ${cifra.instrumento}
 tom: ${cifra.tom}
 capotraste: ${cifra.capotraste || 0}
+bpm: ${cifra.bpm || 0}
+videoYoutube: ${cifra.videoYoutube || ''}
 
 ${cifra.cifra}`;
 
@@ -60,6 +62,8 @@ export function importarCifra(file: File): Promise<Cifra> {
         const instrumento = metadata.instrumento || 'Violão';
         const tom = metadata.tom || 'C';
         const capotraste = parseInt(metadata.capotraste || '0');
+        const bpm = parseInt(metadata.bpm || '0');
+        const videoYoutube = metadata.videoyoutube || '';
 
         const agora = new Date().toISOString();
 
@@ -72,6 +76,8 @@ export function importarCifra(file: File): Promise<Cifra> {
           cifra: cifraContent.trim(),
           slug: '', // Será gerado ao salvar
           capotraste,
+          bpm,
+          videoYoutube,
           criadaEm: agora,
           atualizadaEm: agora
         };
