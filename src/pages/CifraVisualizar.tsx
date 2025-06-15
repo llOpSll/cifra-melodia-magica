@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CifraTransposer } from "../components/CifraTransposer";
@@ -22,20 +23,12 @@ export default function CifraVisualizar() {
     
     // Verificar se é uma cifra de arquivo
     if (cifra.id.startsWith('file-')) {
-      if (confirm(`Tem certeza que deseja EXCLUIR PERMANENTEMENTE a cifra "${cifra.titulo}"? Esta ação não pode ser desfeita.`)) {
-        const sucesso = deletarCifra(cifra.id);
-        if (sucesso) {
-          toast({
-            title: "Cifra excluída permanentemente!",
-            description: "A cifra foi removida do sistema.",
-          });
-          navigate("/");
-        } else {
-          toast({
-            title: "Erro ao excluir a cifra.",
-          });
-        }
-      }
+      // iPad 2 não suporta excluir arquivos do diretório CIFRAS/
+      toast({
+        title: "Função não disponível no iPad 2",
+        description: "A exclusão de arquivos do diretório CIFRAS/ não é suportada neste dispositivo.",
+      });
+      return;
     } else {
       // Cifra do localStorage
       if (confirm(`Tem certeza que deseja excluir a cifra "${cifra.titulo}"?`)) {
@@ -171,13 +164,9 @@ export default function CifraVisualizar() {
                     <EyeOff size={17} />
                     Ocultar
                   </button>
-                  <button
-                    className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow bg-red-600 hover:bg-red-700"
-                    onClick={handleDelete}
-                  >
-                    <Trash2 size={17} />
-                    Excluir Permanentemente
-                  </button>
+                  <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                    ⚠️ Exclusão de arquivos não disponível no iPad 2
+                  </div>
                 </>
               ) : (
                 <>
