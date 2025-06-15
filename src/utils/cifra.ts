@@ -1,4 +1,5 @@
 
+
 const tonsOrdem = [
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 ];
@@ -10,7 +11,12 @@ const enhar = {
 };
 
 function normalizaTom(t: string): string {
-  const up = t.toUpperCase();
+  // Extrair apenas a nota fundamental (sem menor/maior ou outras extensões)
+  const match = t.match(/^([A-G][#b]?)/);
+  if (!match) return t;
+  
+  const notaBase = match[1];
+  const up = notaBase.toUpperCase();
   return enhar[up] || up;
 }
 
@@ -55,12 +61,20 @@ export function transporCifra(cifra: string, semitons: number): string {
   });
 }
 
-// Função para transpor um tom específico
+// Função para transpor um tom específico (incluindo acordes menores)
 export function transporTom(tom: string, semitons: number): string {
-  const idx = tonsOrdem.indexOf(normalizaTom(tom));
+  // Extrair a nota fundamental e o resto (m, 7, etc.)
+  const match = tom.match(/^([A-G][#b]?)(.*)/);
+  if (!match) return tom;
+  
+  const [_, notaBase, extensao] = match;
+  const idx = tonsOrdem.indexOf(normalizaTom(notaBase));
   if (idx === -1) return tom;
+  
   const novoIdx = (idx + semitons + 12) % 12;
-  return tonsOrdem[novoIdx];
+  const notaNova = tonsOrdem[novoIdx];
+  
+  return notaNova + extensao;
 }
 
 // Função para capotraste
@@ -76,3 +90,4 @@ export function obterTomComCapo(tomOriginal: string, casaCapo: number): string {
   if (casaCapo === 0) return tomOriginal;
   return transporTom(tomOriginal, -casaCapo);
 }
+
