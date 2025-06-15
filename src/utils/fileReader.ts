@@ -1,3 +1,4 @@
+
 import { Cifra } from './storage';
 import slugify from 'slugify';
 
@@ -9,7 +10,7 @@ export function parseCifraFile(filename: string, content: string): Cifra {
   let instrumento = 'Violão';
   let tom = 'C';
   let capotraste = 0;
-  let bpm = 0;
+  let bpm = '';
   let videoYoutube = '';
   let cifraContent = '';
   
@@ -29,7 +30,7 @@ export function parseCifraFile(filename: string, content: string): Cifra {
     } else if (line.toLowerCase().includes('capotraste:')) {
       capotraste = parseInt(line.split(':')[1]?.trim() || '0');
     } else if (line.toLowerCase().includes('bpm:')) {
-      bpm = parseInt(line.split(':')[1]?.trim() || '0');
+      bpm = line.split(':')[1]?.trim() || '';
     } else if (line.toLowerCase().includes('videoyoutube:')) {
       videoYoutube = line.split(':')[1]?.trim() || '';
     }

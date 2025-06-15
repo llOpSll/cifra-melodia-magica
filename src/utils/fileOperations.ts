@@ -1,4 +1,3 @@
-
 import { Cifra } from './storage';
 
 // Função para exportar uma cifra como arquivo .txt
@@ -8,7 +7,7 @@ titulo: ${cifra.titulo}
 instrumento: ${cifra.instrumento}
 tom: ${cifra.tom}
 capotraste: ${cifra.capotraste || 0}
-bpm: ${cifra.bpm || 0}
+bpm: ${cifra.bpm || ''}
 videoYoutube: ${cifra.videoYoutube || ''}
 
 ${cifra.cifra}`;

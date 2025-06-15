@@ -119,7 +119,7 @@ export default function CifraVisualizar() {
               {cifra.capotraste && cifra.capotraste > 0 && (
                 <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.capotraste}ª casa</span></>
               )}
-              {cifra.bpm && cifra.bpm > 0 && (
+              {cifra.bpm && cifra.bpm.trim() !== '' && (
                 <> • BPM <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifra.bpm}</span></>
               )}
               {isFromFile && (

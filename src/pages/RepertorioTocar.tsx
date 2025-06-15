@@ -101,7 +101,7 @@ export default function RepertorioTocar() {
                 {cifraAtualObj.capotraste && cifraAtualObj.capotraste > 0 && (
                   <> • Capotraste <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifraAtualObj.capotraste}ª casa</span></>
                 )}
-                {cifraAtualObj.bpm && cifraAtualObj.bpm > 0 && (
+                {cifraAtualObj.bpm && cifraAtualObj.bpm.trim() !== '' && (
                   <> • BPM <span className="font-bold" style={{ color: '#7F8CAA' }}>{cifraAtualObj.bpm}</span></>
                 )}
               </div>
