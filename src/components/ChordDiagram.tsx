@@ -81,8 +81,8 @@ export function ChordDiagram({ chord, instrument }: ChordDiagramProps) {
 
   if (!chordData) {
     return (
-      <Card className="w-32">
-        <CardContent className="p-3">
+      <Card className="w-40">
+        <CardContent className="p-4">
           <div className="text-center">
             <div className="font-bold text-sm mb-2">{chord}</div>
             <div className="text-xs text-gray-500">Diagrama não disponível</div>
@@ -94,68 +94,103 @@ export function ChordDiagram({ chord, instrument }: ChordDiagramProps) {
 
   const { frets, fingers } = chordData;
 
+  // Encontrar a casa inicial para mostrar no diagrama
+  const activeFrets = frets.filter(f => f > 0);
+  const startFret = activeFrets.length > 0 ? Math.min(...activeFrets) : 1;
+  const endFret = Math.max(startFret + 3, 5); // Mostrar pelo menos 4 casas
+
   return (
-    <Card className="w-32">
-      <CardContent className="p-3">
+    <Card className="w-40">
+      <CardContent className="p-4">
         <div className="text-center">
-          <div className="font-bold text-sm mb-2">{chord}</div>
+          <div className="font-bold text-base mb-3">{chord}</div>
           
           {/* Diagram */}
           <div className="relative">
-            {/* Strings names */}
-            <div className="flex justify-between text-xs mb-1" style={{ color: '#7F8CAA' }}>
+            {/* String names */}
+            <div className="flex justify-between text-xs font-semibold mb-2" style={{ color: '#333447' }}>
               {stringNames.map((string, i) => (
-                <span key={i} className="w-4 text-center">{string}</span>
+                <span key={i} className="w-5 text-center">{string}</span>
               ))}
+            </div>
+            
+            {/* Open/Muted indicators above the fretboard */}
+            <div className="flex justify-between items-center mb-2">
+              {frets.map((fret, stringIndex) => {
+                const isOpen = fret === 0;
+                const isMuted = fret === -1;
+                
+                return (
+                  <div key={stringIndex} className="w-5 h-4 flex items-center justify-center">
+                    {isOpen && (
+                      <div className="w-3 h-3 border-2 border-green-600 rounded-full bg-white"></div>
+                    )}
+                    {isMuted && (
+                      <div className="text-red-600 text-base font-bold">×</div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             
             {/* Fretboard */}
-            <div className="border border-gray-300 bg-white p-2">
-              {/* Frets (5 frets shown) */}
-              {[...Array(5)].map((_, fretIndex) => (
-                <div key={fretIndex} className="flex justify-between items-center h-6 border-b border-gray-200 last:border-b-0">
-                  {frets.map((fret, stringIndex) => {
-                    const isPressed = fret === fretIndex + 1;
-                    const fingerNumber = isPressed ? fingers[stringIndex] : null;
-                    const isOpen = fret === 0 && fretIndex === 0;
-                    const isMuted = fret === -1 && fretIndex === 0;
-                    
-                    return (
-                      <div key={stringIndex} className="w-4 h-4 flex items-center justify-center relative">
-                        {/* String line */}
-                        <div className="absolute w-full h-0.5 bg-gray-400"></div>
-                        
-                        {/* Finger position */}
-                        {isPressed && (
-                          <div 
-                            className="w-3 h-3 rounded-full flex items-center justify-center text-xs font-bold text-white z-10"
-                            style={{ backgroundColor: '#333447' }}
-                          >
-                            {fingerNumber || ''}
-                          </div>
-                        )}
-                        
-                        {/* Open string indicator */}
-                        {isOpen && (
-                          <div className="w-2 h-2 border-2 border-green-600 rounded-full bg-white z-10"></div>
-                        )}
-                        
-                        {/* Muted string indicator */}
-                        {isMuted && (
-                          <div className="text-red-600 text-lg font-bold z-10">×</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+            <div className="border-2 border-gray-800 bg-amber-50 relative" style={{ height: '120px', width: '100%' }}>
+              {/* Fret lines */}
+              {[...Array(4)].map((_, fretIndex) => (
+                <div 
+                  key={fretIndex} 
+                  className="absolute w-full border-b border-gray-600"
+                  style={{ 
+                    top: `${((fretIndex + 1) * 100) / 4}%`,
+                    height: '1px'
+                  }}
+                />
               ))}
+              
+              {/* String lines */}
+              {[...Array(6)].map((_, stringIndex) => (
+                <div 
+                  key={stringIndex}
+                  className="absolute h-full border-l border-gray-400"
+                  style={{ 
+                    left: `${((stringIndex * 100) / 5) + (100/10)}%`,
+                    width: '1px'
+                  }}
+                />
+              ))}
+              
+              {/* Finger positions */}
+              {frets.map((fret, stringIndex) => {
+                if (fret <= 0) return null;
+                
+                const fingerNumber = fingers[stringIndex];
+                const fretPosition = fret - startFret + 1;
+                
+                if (fretPosition < 1 || fretPosition > 4) return null;
+                
+                return (
+                  <div
+                    key={stringIndex}
+                    className="absolute w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg"
+                    style={{
+                      backgroundColor: '#333447',
+                      left: `${((stringIndex * 100) / 5) + (100/10) - 12}px`,
+                      top: `${((fretPosition - 0.5) * 100) / 4 - 12}%`,
+                      border: '2px solid #fff'
+                    }}
+                  >
+                    {fingerNumber || ''}
+                  </div>
+                );
+              })}
             </div>
             
             {/* Fret numbers */}
-            <div className="flex justify-start mt-1">
-              <div className="text-xs" style={{ color: '#7F8CAA' }}>
-                1 2 3 4 5
-              </div>
+            <div className="flex justify-between mt-2 text-xs font-semibold" style={{ color: '#7F8CAA' }}>
+              <span className="w-5 text-center">{startFret}</span>
+              <span className="w-5 text-center">{startFret + 1}</span>
+              <span className="w-5 text-center">{startFret + 2}</span>
+              <span className="w-5 text-center">{startFret + 3}</span>
             </div>
           </div>
         </div>
