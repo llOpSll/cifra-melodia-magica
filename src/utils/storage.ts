@@ -1,4 +1,3 @@
-
 // Sistema de armazenamento local para cifras
 export interface Cifra {
   id: string;
@@ -8,6 +7,7 @@ export interface Cifra {
   tom: string;
   cifra: string;
   slug: string;
+  capotraste?: number; // Casa do capotraste
   criadaEm: string;
   atualizadaEm: string;
 }
@@ -156,75 +156,61 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Inicializar com dados de exemplo se não houver dados
+// Inicializar com dados de exemplo corretos
 export function inicializarDadosExemplo() {
   const cifras = getCifras();
-  if (cifras.length === 0) {
-    const agora = new Date().toISOString();
-    const exemplosCifras: Cifra[] = [
-      {
-        id: '1',
-        artista: 'MORADA',
-        titulo: 'Só Tu És Santo / Uma Coisa / Deixa Queimar / Quando Ele Vem (Pot-Pourri)',
-        instrumento: 'Violão',
-        tom: 'C',
-        slug: 'morada-so-tu-es-santo-pot-pourri',
-        cifra: `Intro: C  F  Am  G
+  // Limpar todas as cifras existentes e recriar
+  localStorage.setItem(CIFRAS_KEY, JSON.stringify([]));
+  
+  const agora = new Date().toISOString();
+  const exemplosCifras: Cifra[] = [
+    {
+      id: '1',
+      artista: 'MORADA',
+      titulo: 'Só Tu És Santo / Uma Coisa / Deixa Queimar / Quando Ele Vem (Pot-Pourri)',
+      instrumento: 'Violão',
+      tom: 'C',
+      capotraste: 0,
+      slug: 'morada-so-tu-es-santo-pot-pourri',
+      cifra: `Intro: [C]  [F]  [Am]  [G]
 
-C                        F
-Só Tu és santo, só Tu és digno
-Am                      G
-Só Tu és santo, Senhor
+[C]Só Tu és santo, [F]só Tu és digno
+[Am]Só Tu és santo, Se[G]nhor
 
-C                        F
-E eu me rendo a Ti, Senhor
-Am                 G       C
-E entrego a Ti o meu coração
+[C]E eu me rendo a Ti, Se[F]nhor
+[Am]E entrego a Ti o [G]meu cora[C]ção
 
-( C  F  Am  G )
+( [C]  [F]  [Am]  [G] )
 
-Am         F               C              G
-Uma coisa peço ao Senhor e a buscarei
-Am         F               C              G
-Que eu possa morar na casa do Senhor
-Am        F              C              G
-E contemplar a Sua beleza e Seu amor
-Am        F              C              G
-Por todos os dias da minha vida
+[Am]Uma coisa [F]peço ao Senhor [C]e a busca[G]rei
+[Am]Que eu possa [F]morar na casa [C]do Senhor[G]
+[Am]E contemplar a [F]Sua beleza [C]e Seu a[G]mor
+[Am]Por todos os [F]dias da minha [C]vi[G]da
 
-F         G              Am
-Deixa queimar o fogo santo em mim
-F         G              C
-Deixa queimar o fogo santo em mim
-F         G              Am           F
-Deixa queimar o fogo santo em mim
-G                C
-Deixa queimar
+[F]Deixa queimar o [G]fogo santo em [Am]mim
+[F]Deixa queimar o [G]fogo santo em [C]mim
+[F]Deixa queimar o [G]fogo santo em [Am]mim[F]
+[G]Deixa que[C]mar
 
-C                               F
-Quando Ele vem, algo acontece
-G                               C
-Corações se enchem de alegria
-C                               F
-Quando Ele vem, algo acontece
-G                               C
-Tudo se transforma, tudo muda
+[C]Quando Ele vem, algo aconte[F]ce
+[G]Corações se enchem de ale[C]gria
+[C]Quando Ele vem, algo aconte[F]ce
+[G]Tudo se transforma, tudo [C]muda
 
-C                               F
-Quando Ele vem, quando Ele vem
-G                               C
-Quando Ele vem, quando Ele vem`,
-        criadaEm: agora,
-        atualizadaEm: agora
-      },
-      {
-        id: '2',
-        artista: 'Oficina G3',
-        titulo: 'Te Escolhi',
-        instrumento: 'Guitarra',
-        tom: 'Bbm',
-        slug: 'oficina-g3-te-escolhi',
-        cifra: `Intro:
+[C]Quando Ele vem, quando Ele [F]vem
+[G]Quando Ele vem, quando Ele [C]vem`,
+      criadaEm: agora,
+      atualizadaEm: agora
+    },
+    {
+      id: '2',
+      artista: 'Oficina G3',
+      titulo: 'Te Escolhi',
+      instrumento: 'Guitarra',
+      tom: 'Bbm',
+      capotraste: 0,
+      slug: 'oficina-g3-te-escolhi',
+      cifra: `Intro:
 E|------------------------|
 B|------------------------|
 G|------------------------|
@@ -232,15 +218,11 @@ D|---4-3------------------|
 A|-------4----------------|
 E|---------6--------------|
 
-Bbm                     Ab
-Você já me procurou
-         Gb
-Por muitas vezes tentou
+[Bbm]Você já me procu[Ab]rou
+Por muitas vezes ten[Gb]tou
 Como cego na multidão
-Bbm             Ab
-Que procura seu caminho
-       Gb                    Gb  F  Db  Bbm
-Mas sozinho nada encontra
+[Bbm]Que procura seu cami[Ab]nho
+Mas sozinho nada encon[Gb]tra    [Gb]  [F]  [Db]  [Bbm]
 
 E|-------------------------------|
 B|-------------------------------|
@@ -249,10 +231,8 @@ D|---4-3-------------------------|
 A|-------4-----------------------|
 E|---------6---------------------|
 
-Bbm                  Ab
-Quantas vezes eu te chamei
-     Gb             Gb  F  Db  Bbm
-E você não entendeu
+[Bbm]Quantas vezes eu te cha[Ab]mei
+E você não enten[Gb]deu     [Gb]  [F]  [Db]  [Bbm]
 
 E|-------------------------------|
 B|-------------------------------|
@@ -261,20 +241,14 @@ D|---4-3-------------------------|
 A|-------4-----------------------|
 E|---------6---------------------|
 
-Fm                     Gb
-Se você parasse um pouco e ouvisse a minha voz
+[Fm]Se você parasse um pouco e ou[Gb]visse a minha voz
 
-Db           Ab
-Te escolhi, te busquei
-Bbm                Gb
-Sempre ao seu lado eu caminhei
-Db         Ab       Bbm   Gb
-Eu sofri  por você
+[Db]Te esco[Ab]lhi, te bus[Bbm]quei
+Sempre ao seu lado eu cami[Gb]nhei
+[Db]Eu so[Ab]fri por vo[Bbm]cê[Gb]
 
-Bbm           Ab
-Eu te procuro
-                   Gb
-E você por tantos lugares buscou
+[Bbm]Eu te procu[Ab]ro
+E você por tantos lugares bus[Gb]cou
 
 E|-------------------------------|
 B|--------6/---9/----11/---------|
@@ -283,10 +257,9 @@ D|-------------------------------|
 A|-------------------------------|
 E|-------------------------------|
 
-Bbm                 Ab                       Gb
-Mas nunca entendeu que eu sempre estive perto de você
+[Bbm]Mas nunca enten[Ab]deu que eu sempre estive perto de vo[Gb]cê
 
-( Gb  F  Db  Bbm )
+( [Gb]  [F]  [Db]  [Bbm] )
 
 E|-------------------------------|
 B|-------------------------------|
@@ -295,10 +268,8 @@ D|---4-3-------------------------|
 A|-------4-----------------------|
 E|---------6---------------------|
 
-Bbm             Ab                  Gb
-Eu te escolhi, quero te conquistar
-                          F  Db  Bbm
-Te mostrar o verdadeiro amigo
+[Bbm]Eu te escolhi, que[Ab]ro te conquistar
+[Gb]Te mostrar o verdadeiro ami[F]go  [Db]  [Bbm]
 
 E|-------------------------------|
 B|-------------------------------|
@@ -307,8 +278,7 @@ D|---4-3-------------------------|
 A|-------6-----------------------|
 E|---------6---------------------|
 
-Fm                    Gb
-Se você parar e ouvir a minha voz
+[Fm]Se você parar e ouvir a mi[Gb]nha voz
 
 E|----------------------------------|
 B|--9--6----6-/-4-------------------|
@@ -317,42 +287,30 @@ D|--------------------4-3-4---------|
 A|----------------------------------|
 E|----------------------------------|
 
-Db           Ab
-Te escolhi, te busquei
-Bbm                Gb
-Sempre ao seu lado eu caminhei
-Db         Ab       Bb
-Eu sofri  por você
+[Db]Te esco[Ab]lhi, te bus[Bbm]quei
+Sempre ao seu lado eu cami[Gb]nhei
+[Db]Eu so[Ab]fri por vo[Bb]cê
 
-Db           Ab
-Te escolhi, te busquei
-Bbm                Gb
-Sempre ao seu lado eu caminhei
-Db         Ab       Bb
-Eu sofri  por você
+[Db]Te esco[Ab]lhi, te bus[Bbm]quei
+Sempre ao seu lado eu cami[Gb]nhei
+[Db]Eu so[Ab]fri por vo[Bb]cê
 
-( Db  Ab  Bbm  Gb )
-( Db  Ab  Bbm  Gb )
-( Db  Ab  Bbm  Gb )
+( [Db]  [Ab]  [Bbm]  [Gb] )
+( [Db]  [Ab]  [Bbm]  [Gb] )
+( [Db]  [Ab]  [Bbm]  [Gb] )
 
 Final:
-Db           Ab
-Te escolhi, te busquei
-Bbm                Gb
-Sempre ao seu lado eu caminhei
-Db         Ab       Bbm  Gb
-Eu sofri  por você
+[Db]Te esco[Ab]lhi, te bus[Bbm]quei
+Sempre ao seu lado eu cami[Gb]nhei
+[Db]Eu so[Ab]fri por vo[Bbm]cê  [Gb]
 
-Db           Ab
-Te escolhi, te busquei
-Bbm                Gb
-Sempre ao seu lado eu caminhei
-Db         Ab       Bbm  Gb
-Eu sofri  por você`,
-        criadaEm: agora,
-        atualizadaEm: agora
-      }
-    ];
-    localStorage.setItem(CIFRAS_KEY, JSON.stringify(exemplosCifras));
-  }
+[Db]Te esco[Ab]lhi, te bus[Bbm]quei
+Sempre ao seu lado eu cami[Gb]nhei
+[Db]Eu so[Ab]fri por vo[Bbm]cê  [Gb]`,
+      criadaEm: agora,
+      atualizadaEm: agora
+    }
+  ];
+  
+  localStorage.setItem(CIFRAS_KEY, JSON.stringify(exemplosCifras));
 }

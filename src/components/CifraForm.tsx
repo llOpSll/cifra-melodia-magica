@@ -11,6 +11,7 @@ type CifraDados = {
   instrumento: string;
   tom: string;
   cifra: string;
+  capotraste: number;
 };
 
 const instrumentos = [
@@ -36,10 +37,12 @@ export function CifraForm({ cifraId }: Props) {
     instrumento: cifraExistente?.instrumento || "Violão",
     tom: cifraExistente?.tom || "",
     cifra: cifraExistente?.cifra || "",
+    capotraste: cifraExistente?.capotraste || 0,
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const value = e.target.name === 'capotraste' ? parseInt(e.target.value) : e.target.value;
+    setForm({ ...form, [e.target.name]: value });
   }
   
   function handleSubmit(e: React.FormEvent) {
@@ -113,6 +116,17 @@ export function CifraForm({ cifraId }: Props) {
           placeholder="Ex: C, D#m, F7M, G/B, etc"
           className="w-full border border-gray-300 rounded-lg px-3 py-2"
           value={form.tom} onChange={handleChange} />
+      </div>
+      <div>
+        <label className="font-semibold block mb-1" htmlFor="capotraste">Capotraste (casa)</label>
+        <select name="capotraste" id="capotraste"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          value={form.capotraste} onChange={handleChange}>
+          <option value={0}>Sem capotraste</option>
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map(casa => (
+            <option key={casa} value={casa}>{casa}ª casa</option>
+          ))}
+        </select>
       </div>
       <div>
         <label className="font-semibold block mb-1" htmlFor="cifra">Cifra/Tab *</label>

@@ -43,7 +43,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
   }
 
-  // Função para detectar se uma linha é tablatura - mais precisa
+  // Função para detectar se uma linha é tablatura
   function isTabLine(line: string): boolean {
     const trimmed = line.trim();
     const tabStartPattern = /^[EADGBEeadgbe][0-9]*\|/;
@@ -53,23 +53,13 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     return tabStartPattern.test(trimmed) && numberPattern.test(trimmed) && pipePattern.test(trimmed);
   }
 
-  // Função para detectar se uma linha contém apenas acordes
-  function isChordOnlyLine(line: string): boolean {
-    const trimmed = line.trim();
-    if (!trimmed) return false;
-    
-    const parts = trimmed.split(/\s+/);
-    return parts.every(part => /^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part));
-  }
-
-  // Parsea cifra para destacar acordes e tablaturas
+  // Parsea cifra para destacar acordes
   function renderLinha(l: string, idx: number) {
-    // Se for uma linha de tablatura, renderizar sem destaque excessivo
+    // Se for uma linha de tablatura, destacar apenas os números das casas
     if (isTabLine(l)) {
       return (
-        <div key={idx} className="whitespace-pre" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+        <div key={idx} className="whitespace-pre" style={{ fontFamily: 'Roboto Mono, monospace', fontSize: fontSize + "px" }}>
           <span 
-            style={{ fontSize: fontSize * 0.9 + "px" }}
             dangerouslySetInnerHTML={{
               __html: l.replace(/(\d+)/g, '<span style="color: #2563eb; font-weight: 500;">$1</span>')
             }}
@@ -78,60 +68,23 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
       );
     }
 
-    // Se for uma linha só de acordes, destacar todos
-    if (isChordOnlyLine(l)) {
-      return (
-        <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-          {l.split(/(\s+)/).map((part, j) => {
-            if (/^\s+$/.test(part)) {
-              return <span key={j}>{part}</span>;
-            }
-            if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part.trim()) && part.trim()) {
-              return (
-                <span
-                  key={j}
-                  className="font-bold text-green-700 bg-green-100/80 rounded px-1"
-                  style={{ fontSize: fontSize * 0.95 + "px" }}
-                >
-                  {part}
-                </span>
-              );
-            }
-            return <span key={j} style={{ fontSize: fontSize + "px" }}>{part}</span>;
-          })}
-        </div>
-      );
-    }
-
-    // Para linhas mistas (acordes + letra), destacar acordes no meio do texto
+    // Para outras linhas, destacar acordes entre colchetes
     return (
-      <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-        {l.split(/(\b[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?)\b/i).map((part, j) => {
-          const partLower = part.toLowerCase();
-          const palavrasComuns = [
-            'amém', 'amor', 'bem', 'casa', 'deus', 'dia', 'ele', 'ela', 'em', 'eu', 'me', 'meu', 'minha',
-            'no', 'na', 'nos', 'nas', 'do', 'da', 'dos', 'das', 'de', 'se', 'te', 'le', 'ne', 'pe', 've',
-            'ce', 'ge', 'he', 'je', 'ke', 'que', 'como', 'para', 'pela', 'pelo', 'este', 'esta', 'esse',
-            'essa', 'onde', 'quando', 'porque', 'antes', 'depois', 'sobre', 'entre', 'contra', 'desde',
-            'ate', 'até', 'durante', 'atraves', 'através', 'casa', 'ano', 'mes', 'mês', 'vez', 'mal',
-            'sim', 'não', 'nao', 'mas', 'seu', 'sua', 'nosso', 'nossa', 'dele', 'dela', 'deles', 'delas'
-          ];
-
-          // Se a parte é um acorde válido E não é uma palavra comum, destacar
-          if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part) && 
-              part.trim() && !palavrasComuns.includes(partLower)) {
+      <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace', fontSize: fontSize + "px" }}>
+        {l.split(/(\[[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?\])/g).map((part, j) => {
+          // Se a parte é um acorde entre colchetes, destacar
+          if (/^\[[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?\]$/i.test(part)) {
             return (
               <span
                 key={j}
                 className="font-bold text-green-700 bg-green-100/80 rounded px-1"
-                style={{ fontSize: fontSize * 0.95 + "px" }}
               >
                 {part}
               </span>
             );
           }
           // Senão, renderizar normalmente
-          return <span key={j} style={{ fontSize: fontSize + "px" }}>{part}</span>;
+          return <span key={j}>{part}</span>;
         })}
       </div>
     );
@@ -204,10 +157,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
       </div>
 
       {/* Cifra */}
-      <div
-        className="border border-green-200 rounded-xl p-4 bg-white/80 shadow-inner"
-        style={{ fontSize: fontSize + "px" }}
-      >
+      <div className="border border-green-200 rounded-xl p-4 bg-white/80 shadow-inner">
         {cifraTrabalhada.split("\n").map(renderLinha)}
       </div>
     </div>

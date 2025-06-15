@@ -59,44 +59,22 @@ function isTabLine(line: string): boolean {
   return tabStartPattern.test(trimmed) && numberPattern.test(trimmed) && pipePattern.test(trimmed);
 }
 
-// Função para detectar se uma linha contém apenas acordes
-function isChordOnlyLine(line: string): boolean {
-  const trimmed = line.trim();
-  if (!trimmed) return false;
-  
-  const parts = trimmed.split(/\s+/);
-  
-  return parts.every(part => {
-    // Padrão mais abrangente para acordes incluindo todos os tipos possíveis
-    return /^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part);
-  });
-}
-
 // Função para transpor números em uma linha de tablatura (NÃO as cordas)
 function transposeTabLine(line: string, semitons: number): string {
   if (semitons === 0) return line;
   
-  // Só transpor os números (casas), não alterar as letras das cordas
-  return line.replace(/(\d+)/g, (match, numero) => {
+  // NUNCA alterar as letras das cordas (E|, A|, D|, G|, B|, e|)
+  // Só transpor os números (casas) que não estão no início da linha
+  return line.replace(/(\|[^|]*?)(\d+)/g, (match, antes, numero) => {
     const casa = parseInt(numero);
     if (isNaN(casa)) return match;
     
     const novaCasa = casa + semitons;
-    return Math.max(0, Math.min(novaCasa, 24)).toString();
+    return antes + Math.max(0, Math.min(novaCasa, 24)).toString();
   });
 }
 
-// Lista de palavras comuns em português para evitar transposição
-const palavrasComuns = [
-  'amém', 'amor', 'bem', 'casa', 'deus', 'dia', 'ele', 'ela', 'em', 'eu', 'me', 'meu', 'minha',
-  'no', 'na', 'nos', 'nas', 'do', 'da', 'dos', 'das', 'de', 'se', 'te', 'le', 'ne', 'pe', 've',
-  'ce', 'ge', 'he', 'je', 'ke', 'que', 'como', 'para', 'pela', 'pelo', 'este', 'esta', 'esse',
-  'essa', 'onde', 'quando', 'porque', 'antes', 'depois', 'sobre', 'entre', 'contra', 'desde',
-  'ate', 'até', 'durante', 'atraves', 'através', 'casa', 'ano', 'mes', 'mês', 'vez', 'mal',
-  'sim', 'não', 'nao', 'mas', 'seu', 'sua', 'nosso', 'nossa', 'dele', 'dela', 'deles', 'delas'
-];
-
-// Transpõe todos os acordes da cifra e tablaturas
+// Transpõe todos os acordes da cifra usando padrão [Acorde]
 export function transporCifra(cifra: string, semitons: number): string {
   if (semitons === 0) return cifra;
   
@@ -107,28 +85,16 @@ export function transporCifra(cifra: string, semitons: number): string {
       return transposeTabLine(linha, semitons);
     }
     
-    // Regex mais precisa para acordes - incluindo todos os tipos de extensões e inversões
-    return linha.replace(/\b([A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?)\b/g, (match, acorde) => {
-      const matchLower = match.toLowerCase();
-      
-      // Verificar se é uma palavra comum em português
-      if (palavrasComuns.includes(matchLower)) {
-        return match;
-      }
-      
-      // Verificar se é realmente um acorde válido
-      if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(acorde)) {
-        return transpAcorde(acorde, semitons);
-      }
-      
-      return match;
+    // Regex para acordes entre colchetes [C], [Am7], [C7M/E], etc.
+    return linha.replace(/\[([A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?)\]/g, (match, acorde) => {
+      return '[' + transpAcorde(acorde, semitons) + ']';
     });
   });
   
   return linhasTranspostas.join('\n');
 }
 
-// Função para transpor um tom específico (incluindo acordes menores)
+// Função para transpor um tom específico
 export function transporTom(tom: string, semitons: number): string {
   const match = tom.match(/^([A-G][#b]?)(.*)/);
   if (!match) return tom;
