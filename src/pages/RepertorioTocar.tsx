@@ -13,6 +13,7 @@ export default function RepertorioTocar() {
   const [cifras, setCifras] = useState<Cifra[]>([]);
   const [cifraAtual, setCifraAtual] = useState(0);
   const [fontSize, setFontSize] = useState(18);
+  const [resetKey, setResetKey] = useState(0); // Key para forçar reset do CifraTransposer
 
   useEffect(() => {
     if (repertorio) {
@@ -27,6 +28,12 @@ export default function RepertorioTocar() {
     const rep = getRepertorioById(id || "");
     setRepertorio(rep);
   }, [id]);
+
+  // Função para trocar cifra e resetar transposições
+  const handleCifraChange = (index: number) => {
+    setCifraAtual(index);
+    setResetKey(prev => prev + 1); // Força o reset do CifraTransposer
+  };
 
   if (!repertorio) {
     return (
@@ -124,6 +131,7 @@ export default function RepertorioTocar() {
             </div>
             
             <CifraTransposer
+              key={resetKey} // Reset quando muda de cifra
               cifra={cifraAtualObj.cifra}
               tomOriginal={tomLimpo}
               fontSize={fontSize}
@@ -141,7 +149,7 @@ export default function RepertorioTocar() {
             {cifras.map((cifra, index) => (
               <button
                 key={cifra.id}
-                onClick={() => setCifraAtual(index)}
+                onClick={() => handleCifraChange(index)}
                 className={`flex-shrink-0 px-4 py-3 mx-1 rounded-lg font-semibold text-sm transition-all ${
                   index === cifraAtual
                     ? 'text-white shadow-lg'

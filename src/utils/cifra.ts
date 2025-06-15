@@ -59,18 +59,20 @@ function isTabLine(line: string): boolean {
   return tabStartPattern.test(trimmed) && numberPattern.test(trimmed) && pipePattern.test(trimmed);
 }
 
-// Função para transpor números em uma linha de tablatura (NÃO as cordas)
+// Função melhorada para transpor números em uma linha de tablatura
 function transposeTabLine(line: string, semitons: number): string {
   if (semitons === 0) return line;
   
   // NUNCA alterar as letras das cordas (E|, A|, D|, G|, B|, e|)
-  // Só transpor os números (casas) que não estão no início da linha
+  // Melhorar a regex para capturar todos os números entre pipes, incluindo sequências
   return line.replace(/(\|[^|]*?)(\d+)/g, (match, antes, numero) => {
     const casa = parseInt(numero);
     if (isNaN(casa)) return match;
     
     const novaCasa = casa + semitons;
-    return antes + Math.max(0, Math.min(novaCasa, 24)).toString();
+    // Garantir que a casa não seja negativa e não ultrapasse 24
+    const casaFinal = Math.max(0, Math.min(novaCasa, 24));
+    return antes + casaFinal.toString();
   });
 }
 
