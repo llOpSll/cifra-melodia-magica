@@ -2,8 +2,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CifraTransposer } from "../components/CifraTransposer";
-import { ArrowLeft, Printer, Edit, Trash2 } from "lucide-react";
-import { getCifraBySlug, deletarCifra } from "../utils/storage";
+import { ArrowLeft, Printer, Edit, Trash2, Download, EyeOff } from "lucide-react";
+import { getCifraBySlug, deletarCifra, criarVersaoEditavel, ocultarCifra } from "../utils/storage";
+import { exportarCifra } from "../utils/fileOperations";
 import { toast } from "@/hooks/use-toast";
 
 export default function CifraVisualizar() {
@@ -42,6 +43,46 @@ export default function CifraVisualizar() {
         });
       }
     }
+  }
+
+  function handleOcultarArquivo() {
+    if (!cifra || !cifra.id.startsWith('file-')) return;
+    
+    if (confirm(`Tem certeza que deseja ocultar a cifra "${cifra.titulo}"? Ela não aparecerá mais na listagem.`)) {
+      const sucesso = ocultarCifra(cifra.id);
+      if (sucesso) {
+        toast({
+          title: "Cifra ocultada com sucesso!",
+          description: "A cifra não aparecerá mais na listagem.",
+        });
+        navigate("/");
+      } else {
+        toast({
+          title: "Erro ao ocultar a cifra.",
+        });
+      }
+    }
+  }
+
+  function handleEditarArquivo() {
+    if (!cifra || !cifra.id.startsWith('file-')) return;
+    
+    const novoId = criarVersaoEditavel(cifra);
+    toast({
+      title: "Versão editável criada!",
+      description: "Você pode agora editar esta cifra. A versão original foi ocultada.",
+    });
+    navigate(`/editar/${novoId}`);
+  }
+
+  function handleExportar() {
+    if (!cifra) return;
+    
+    exportarCifra(cifra);
+    toast({
+      title: "Cifra exportada!",
+      description: `${cifra.titulo} - ${cifra.artista}`,
+    });
   }
 
   if (!cifra) {
@@ -84,7 +125,7 @@ export default function CifraVisualizar() {
             <div className="text-xl font-semibold" style={{ color: '#333447' }}>{cifra.artista}</div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <button
                 className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
                 style={{ backgroundColor: '#7F8CAA' }}
@@ -93,7 +134,36 @@ export default function CifraVisualizar() {
                 <Printer size={17} />
                 Imprimir
               </button>
-              {!isFromFile && (
+              
+              <button
+                className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
+                onClick={handleExportar}
+              >
+                <Download size={17} />
+                Exportar
+              </button>
+              
+              {isFromFile ? (
+                <>
+                  <button
+                    className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                    style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
+                    onClick={handleEditarArquivo}
+                  >
+                    <Edit size={17} />
+                    Criar Versão Editável
+                  </button>
+                  <button
+                    className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"
+                    style={{ backgroundColor: '#7F8CAA' }}
+                    onClick={handleOcultarArquivo}
+                  >
+                    <EyeOff size={17} />
+                    Ocultar
+                  </button>
+                </>
+              ) : (
                 <>
                   <button
                     className="text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 hover:opacity-80 transition-all border shadow"

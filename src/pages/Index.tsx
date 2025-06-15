@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { CifraCard } from "../components/CifraCard";
+import { FileOperations } from "../components/FileOperations";
 import { Link } from "react-router-dom";
 import { Music, List } from "lucide-react";
 import { getCifras, inicializarDadosExemplo, loadFileBasedCifras } from "../utils/storage";
@@ -27,6 +28,10 @@ export default function Index() {
 
     carregarCifras();
   }, []);
+
+  function handleCifrasUpdated() {
+    setCifras(getCifras());
+  }
 
   const cifrasFiltradas = cifras.filter(
     c =>
@@ -80,6 +85,11 @@ export default function Index() {
           onChange={e => setBusca(e.target.value)}
           aria-label="Buscar"
         />
+        
+        {/* Operações de arquivo */}
+        <div className="bg-white/80 rounded-lg p-4 border border-green-100">
+          <FileOperations cifras={cifras} onCifrasUpdated={handleCifrasUpdated} />
+        </div>
       </div>
 
       <section className="mx-auto max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">

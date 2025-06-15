@@ -22,6 +22,7 @@ export interface Repertorio {
 
 const CIFRAS_KEY = 'cifras_app_cifras';
 const REPERTORIOS_KEY = 'cifras_app_repertorios';
+const CIFRAS_OCULTAS_KEY = 'cifras_app_cifras_ocultas'; // Nova chave para cifras ocultas
 
 // Importar a função para carregar cifras dos arquivos
 import { loadCifrasFromFiles } from './fileReader';
@@ -30,16 +31,51 @@ import { loadCifrasFromFiles } from './fileReader';
 let cifrasFromFiles: Cifra[] = [];
 let cifrasFromFilesLoaded = false;
 
-// Funções para cifras
+// Funções para cifras ocultas
+export function getCifrasOcultas(): string[] {
+  try {
+    const data = localStorage.getItem(CIFRAS_OCULTAS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function ocultarCifra(id: string): boolean {
+  if (!id.startsWith('file-')) return false; // Só permite ocultar cifras de arquivo
+  
+  const cifrasOcultas = getCifrasOcultas();
+  if (!cifrasOcultas.includes(id)) {
+    cifrasOcultas.push(id);
+    localStorage.setItem(CIFRAS_OCULTAS_KEY, JSON.stringify(cifrasOcultas));
+  }
+  return true;
+}
+
+export function mostrarCifra(id: string): boolean {
+  const cifrasOcultas = getCifrasOcultas();
+  const cifrasOcultasFiltradas = cifrasOcultas.filter(cId => cId !== id);
+  
+  if (cifrasOcultas.length === cifrasOcultasFiltradas.length) return false;
+  
+  localStorage.setItem(CIFRAS_OCULTAS_KEY, JSON.stringify(cifrasOcultasFiltradas));
+  return true;
+}
+
 export function getCifras(): Cifra[] {
   try {
     const data = localStorage.getItem(CIFRAS_KEY);
     const cifrasLocalStorage = data ? JSON.parse(data) : [];
+    const cifrasOcultas = getCifrasOcultas();
     
-    // Combinar cifras do localStorage com cifras dos arquivos
-    return [...cifrasFromFiles, ...cifrasLocalStorage];
+    // Filtrar cifras ocultas das cifras dos arquivos
+    const cifrasArquivosVisiveis = cifrasFromFiles.filter(c => !cifrasOcultas.includes(c.id));
+    
+    // Combinar cifras do localStorage com cifras dos arquivos (exceto ocultas)
+    return [...cifrasArquivosVisiveis, ...cifrasLocalStorage];
   } catch {
-    return [...cifrasFromFiles];
+    const cifrasOcultas = getCifrasOcultas();
+    return cifrasFromFiles.filter(c => !cifrasOcultas.includes(c.id));
   }
 }
 
@@ -213,4 +249,26 @@ export function inicializarDadosExemplo() {
   // Só adicionar exemplos se não há cifras no localStorage
   // As cifras dos arquivos já serão carregadas automaticamente
   console.log('Cifras dos arquivos carregadas. Exemplos do localStorage não são mais necessários.');
+}
+
+// Função para criar versão editável de cifra de arquivo
+export function criarVersaoEditavel(cifraOriginal: Cifra): string {
+  const cifrasLocalStorage = getCifrasFromLocalStorage();
+  const agora = new Date().toISOString();
+  
+  // Remover prefixo 'file-' e criar nova versão
+  const novaCifra: Cifra = {
+    ...cifraOriginal,
+    id: generateId(),
+    criadaEm: agora,
+    atualizadaEm: agora
+  };
+  
+  cifrasLocalStorage.push(novaCifra);
+  localStorage.setItem(CIFRAS_KEY, JSON.stringify(cifrasLocalStorage));
+  
+  // Ocultar a cifra original do arquivo
+  ocultarCifra(cifraOriginal.id);
+  
+  return novaCifra.id;
 }
