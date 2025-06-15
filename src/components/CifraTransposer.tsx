@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { transporCifra, transporTom } from "../utils/cifra";
 import { ArrowLeft, ArrowRight, Guitar, Hash } from "lucide-react";
+import { ChordVisualization } from "./ChordVisualization";
 
 type Props = {
   cifra: string;
@@ -194,8 +194,11 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
         )}
       </div>
 
+      {/* Visualização de Acordes */}
+      <ChordVisualization cifra={cifraTrabalhada} tomAtual={tomAtual} />
+
       {/* Cifra */}
-      <div className="border rounded-xl p-4 shadow-inner"
+      <div className="border rounded-xl p-4 shadow-inner mt-6"
            style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)' }}>
         {cifraTrabalhada.split("\n").map(renderLinha)}
       </div>
