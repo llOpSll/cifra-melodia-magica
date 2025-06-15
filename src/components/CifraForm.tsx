@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import slugify from "slugify";
+import { salvarCifra, atualizarCifra, getCifraById } from "../utils/storage";
 
 type CifraDados = {
   artista: string;
@@ -21,19 +22,26 @@ const instrumentos = [
   "Bateria",
 ];
 
-export function CifraForm() {
-  const [form, setForm] = useState<CifraDados>({
-    artista: "",
-    titulo: "",
-    instrumento: "Violão",
-    tom: "",
-    cifra: "",
-  });
+interface Props {
+  cifraId?: string;
+}
+
+export function CifraForm({ cifraId }: Props) {
   const navigate = useNavigate();
+  const cifraExistente = cifraId ? getCifraById(cifraId) : null;
+  
+  const [form, setForm] = useState<CifraDados>({
+    artista: cifraExistente?.artista || "",
+    titulo: cifraExistente?.titulo || "",
+    instrumento: cifraExistente?.instrumento || "Violão",
+    tom: cifraExistente?.tom || "",
+    cifra: cifraExistente?.cifra || "",
+  });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
+  
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -44,8 +52,35 @@ export function CifraForm() {
       return;
     }
 
-    // Aqui deveria salvar no backend ou localStorage. Para demo, redireciona:
-    navigate(`/cifras/${slugify(`${form.artista}-${form.titulo}`, {lower: true, strict: true})}`);
+    try {
+      const slug = slugify(`${form.artista}-${form.titulo}`, {lower: true, strict: true});
+      
+      if (cifraId) {
+        // Editar cifra existente
+        const sucesso = atualizarCifra(cifraId, { ...form, slug });
+        if (sucesso) {
+          toast({
+            title: "Cifra atualizada com sucesso!",
+          });
+          navigate(`/cifras/${slug}`);
+        } else {
+          toast({
+            title: "Erro ao atualizar a cifra.",
+          });
+        }
+      } else {
+        // Criar nova cifra
+        salvarCifra({ ...form, slug });
+        toast({
+          title: "Cifra salva com sucesso!",
+        });
+        navigate(`/cifras/${slug}`);
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar a cifra.",
+      });
+    }
   }
 
   return (
@@ -88,13 +123,14 @@ export function CifraForm() {
         <small className="text-gray-400 block mt-1">
           Exemplo:<br />
           [C]Letra da música aqui<br />
+          Use [Acorde] para marcar acordes
         </small>
       </div>
       <button
         type="submit"
         className="bg-green-600 hover:bg-green-700 text-white rounded-full px-8 py-3 font-bold mt-2 transition-all"
       >
-        Salvar Cifra
+        {cifraId ? 'Atualizar Cifra' : 'Salvar Cifra'}
       </button>
     </form>
   );

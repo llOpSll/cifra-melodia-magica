@@ -8,6 +8,11 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import CifraNova from "./pages/CifraNova";
 import CifraVisualizar from "./pages/CifraVisualizar";
+import CifraEditar from "./pages/CifraEditar";
+import Repertorios from "./pages/Repertorios";
+import RepertorioNovo from "./pages/RepertorioNovo";
+import RepertorioEditar from "./pages/RepertorioEditar";
+import RepertorioTocar from "./pages/RepertorioTocar";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +25,12 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/nova" element={<CifraNova />} />
+          <Route path="/editar/:id" element={<CifraEditar />} />
           <Route path="/cifras/:slug" element={<CifraVisualizar />} />
+          <Route path="/repertorios" element={<Repertorios />} />
+          <Route path="/repertorios/novo" element={<RepertorioNovo />} />
+          <Route path="/repertorios/:id/editar" element={<RepertorioEditar />} />
+          <Route path="/repertorios/:id/tocar" element={<RepertorioTocar />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
