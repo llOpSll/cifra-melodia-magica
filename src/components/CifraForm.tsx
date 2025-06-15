@@ -107,19 +107,21 @@ export function CifraForm({ cifraId }: Props) {
   return (
     <form className="flex flex-col gap-4 text-base" onSubmit={handleSubmit}>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="artista">Artista/Banda *</label>
+        <label className="font-semibold block mb-1" htmlFor="artista" style={{ color: '#333447' }}>Artista/Banda *</label>
         <input type="text" name="artista" id="artista"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          className="w-full rounded-lg px-3 py-2 border"
+          style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
           value={form.artista} onChange={handleChange} />
       </div>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="titulo">Título da Música *</label>
+        <label className="font-semibold block mb-1" htmlFor="titulo" style={{ color: '#333447' }}>Título da Música *</label>
         <input type="text" name="titulo" id="titulo"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          className="w-full rounded-lg px-3 py-2 border"
+          style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
           value={form.titulo} onChange={handleChange} />
       </div>
       <div>
-        <label className="font-semibold block mb-3">Instrumentos *</label>
+        <label className="font-semibold block mb-3" style={{ color: '#333447' }}>Instrumentos *</label>
         <div className="grid grid-cols-2 gap-3">
           {instrumentos.map(instrumento => (
             <div key={instrumento} className="flex items-center space-x-2">
@@ -128,7 +130,8 @@ export function CifraForm({ cifraId }: Props) {
                 checked={form.instrumento.includes(instrumento)}
                 onCheckedChange={(checked) => handleInstrumentoChange(instrumento, checked as boolean)}
               />
-              <label htmlFor={instrumento} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label htmlFor={instrumento} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                     style={{ color: '#333447' }}>
                 {instrumento}
               </label>
             </div>
@@ -136,16 +139,18 @@ export function CifraForm({ cifraId }: Props) {
         </div>
       </div>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="tom">Tom original *</label>
+        <label className="font-semibold block mb-1" htmlFor="tom" style={{ color: '#333447' }}>Tom original *</label>
         <input type="text" name="tom" id="tom"
           placeholder="Ex: C, D#m, F7M, G/B, etc"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          className="w-full rounded-lg px-3 py-2 border"
+          style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
           value={form.tom} onChange={handleChange} />
       </div>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="capotraste">Capotraste (casa)</label>
+        <label className="font-semibold block mb-1" htmlFor="capotraste" style={{ color: '#333447' }}>Capotraste (casa)</label>
         <select name="capotraste" id="capotraste"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          className="w-full rounded-lg px-3 py-2 border"
+          style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
           value={form.capotraste} 
           onChange={(e) => setForm({ ...form, capotraste: parseInt(e.target.value) })}>
           <option value={0}>Sem capotraste</option>
@@ -155,12 +160,13 @@ export function CifraForm({ cifraId }: Props) {
         </select>
       </div>
       <div>
-        <label className="font-semibold block mb-1" htmlFor="cifra">Cifra/Tab *</label>
+        <label className="font-semibold block mb-1" htmlFor="cifra" style={{ color: '#333447' }}>Cifra/Tab *</label>
         <textarea name="cifra" id="cifra"
           rows={8}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 font-mono"
+          className="w-full rounded-lg px-3 py-2 font-mono border"
+          style={{ borderColor: '#B8CFCE', backgroundColor: 'rgba(234, 239, 239, 0.8)', color: '#333447' }}
           value={form.cifra} onChange={handleChange}></textarea>
-        <small className="text-gray-400 block mt-1">
+        <small className="block mt-1" style={{ color: '#7F8CAA' }}>
           Exemplo:<br />
           [C]Letra da música aqui<br />
           Use [Acorde] para marcar acordes
@@ -168,7 +174,8 @@ export function CifraForm({ cifraId }: Props) {
       </div>
       <button
         type="submit"
-        className="bg-green-600 hover:bg-green-700 text-white rounded-full px-8 py-3 font-bold mt-2 transition-all"
+        className="text-white rounded-full px-8 py-3 font-bold mt-2 transition-all hover:opacity-80"
+        style={{ backgroundColor: '#333447' }}
       >
         {cifraId ? 'Atualizar Cifra' : 'Salvar Cifra'}
       </button>

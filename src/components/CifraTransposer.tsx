@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { transporCifra, transporTom, aplicarCapotraste, obterTomComCapo } from "../utils/cifra";
+import { transporCifra, transporTom } from "../utils/cifra";
 import { ArrowLeft, ArrowRight, Guitar, Hash } from "lucide-react";
 
 type Props = {
@@ -25,26 +25,21 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
   // Limpar o tom original removendo qualquer "0" no final
   const tomLimpo = tomOriginal.replace(/0$/, '');
 
-  // Calcular tom atual considerando capotraste E transposição
+  // Calcular tom atual - só aplicar mudanças se o usuário fez alterações
   let tomAtual = tomLimpo;
-  
-  if (capotraste > 0) {
-    tomAtual = obterTomComCapo(tomAtual, capotraste);
-  }
-  
-  if (transposicao !== 0) {
-    tomAtual = transporTom(tomAtual, transposicao);
-  }
-
-  // Aplicar transformações na cifra
   let cifraTrabalhada = cifra;
   
-  if (capotraste > 0) {
-    cifraTrabalhada = aplicarCapotraste(cifraTrabalhada, capotraste);
+  // Aplicar transposição se o usuário mudou
+  if (transposicao !== 0) {
+    tomAtual = transporTom(tomAtual, transposicao);
+    cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
   }
   
-  if (transposicao !== 0) {
-    cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
+  // Aplicar capotraste se o usuário mudou do valor inicial
+  if (capotraste !== capotrasteInicial) {
+    const diferencaCapo = capotraste - capotrasteInicial;
+    tomAtual = transporTom(tomAtual, -diferencaCapo);
+    cifraTrabalhada = transporCifra(cifraTrabalhada, -diferencaCapo);
   }
 
   // Função para detectar se uma linha é tablatura
@@ -97,7 +92,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
             return (
               <span
                 key={j}
-                className="font-bold text-blue-700 bg-blue-100/80 rounded px-1"
+                className="font-bold rounded px-1"
                 style={{ backgroundColor: '#B8CFCE', color: '#333447' }}
               >
                 {acordeSemColchetes}
@@ -118,7 +113,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
         <Guitar className="text-blue-600" size={24} style={{ color: '#7F8CAA' }} />
         <span className="font-bold text-lg" style={{ color: '#333447' }}>Tom:</span>
         <button
-          className="rounded-full p-2 hover:bg-blue-200 transition-all"
+          className="rounded-full p-2 hover:opacity-80 transition-all"
           style={{ backgroundColor: '#B8CFCE' }}
           onClick={() => transpor(-1)}
           aria-label="Transpor tom abaixo"
@@ -130,7 +125,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
           {tomAtual}
         </span>
         <button
-          className="rounded-full p-2 hover:bg-blue-200 transition-all"
+          className="rounded-full p-2 hover:opacity-80 transition-all"
           style={{ backgroundColor: '#B8CFCE' }}
           onClick={() => transpor(1)}
           aria-label="Transpor tom acima"
@@ -139,7 +134,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
         </button>
         {transposicao !== 0 && (
           <button
-            className="text-xs px-2 py-1 rounded hover:bg-gray-300"
+            className="text-xs px-2 py-1 rounded hover:opacity-80"
             style={{ backgroundColor: '#EAEFEF', color: '#333447' }}
             onClick={() => setTransposicao(0)}
           >
@@ -153,7 +148,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
         <Hash className="text-blue-500" size={24} style={{ color: '#7F8CAA' }} />
         <span className="font-bold text-lg" style={{ color: '#333447' }}>Capotraste:</span>
         <button
-          className="rounded-full p-2 hover:bg-blue-200 transition-all"
+          className="rounded-full p-2 hover:opacity-80 transition-all"
           style={{ backgroundColor: '#B8CFCE' }}
           onClick={() => alterarCapo(-1)}
           disabled={capotraste === 0}
@@ -166,7 +161,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
           {capotraste === 0 ? "Sem" : `${capotraste}ª`}
         </span>
         <button
-          className="rounded-full p-2 hover:bg-blue-200 transition-all"
+          className="rounded-full p-2 hover:opacity-80 transition-all"
           style={{ backgroundColor: '#B8CFCE' }}
           onClick={() => alterarCapo(1)}
           disabled={capotraste === 12}
@@ -176,7 +171,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize, capotrasteInicia
         </button>
         {capotraste !== capotrasteInicial && (
           <button
-            className="text-xs px-2 py-1 rounded hover:bg-gray-300"
+            className="text-xs px-2 py-1 rounded hover:opacity-80"
             style={{ backgroundColor: '#EAEFEF', color: '#333447' }}
             onClick={() => setCapotraste(capotrasteInicial)}
           >

@@ -11,23 +11,27 @@ export default function CifraEditar() {
 
   if (!cifra) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-lg text-gray-500">
+      <div className="min-h-screen flex items-center justify-center text-lg"
+           style={{ color: '#7F8CAA' }}>
         Cifra não encontrada.
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-yellow-100 to-blue-100 py-10 px-2 flex items-center justify-center">
-      <div className="max-w-lg w-full rounded-xl bg-white/90 shadow-xl p-10 border border-green-200">
+    <div className="min-h-screen py-10 px-2 flex items-center justify-center"
+         style={{ background: 'linear-gradient(to bottom right, #EAEFEF, #B8CFCE, #7F8CAA)' }}>
+      <div className="max-w-lg w-full rounded-xl shadow-xl p-10 border"
+           style={{ backgroundColor: 'rgba(234, 239, 239, 0.9)', borderColor: '#B8CFCE' }}>
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 flex items-center text-green-600 hover:text-green-800 font-semibold text-sm"
+          className="mb-4 flex items-center font-semibold text-sm hover:opacity-80"
+          style={{ color: '#333447' }}
         >
           <ArrowLeft size={19} className="mr-1" />
           Voltar
         </button>
-        <h1 className="text-2xl font-bold mb-6 text-primary">Editar Cifra</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#333447' }}>Editar Cifra</h1>
         <CifraForm cifraId={id} />
       </div>
     </div>
