@@ -1,3 +1,4 @@
+
 // Sistema de armazenamento local para cifras
 export interface Cifra {
   id: string;
@@ -168,7 +169,9 @@ export function inicializarDadosExemplo() {
         instrumento: 'Violão',
         tom: 'C',
         slug: 'morada-so-tu-es-santo-pot-pourri',
-        cifra: `C                        F
+        cifra: `Intro: C  F  Am  G
+
+C                        F
 Só Tu és santo, só Tu és digno
 Am                      G
 Só Tu és santo, Senhor
@@ -177,6 +180,8 @@ C                        F
 E eu me rendo a Ti, Senhor
 Am                 G       C
 E entrego a Ti o meu coração
+
+( C  F  Am  G )
 
 Am         F               C              G
 Uma coisa peço ao Senhor e a buscarei
@@ -203,7 +208,12 @@ Corações se enchem de alegria
 C                               F
 Quando Ele vem, algo acontece
 G                               C
-Tudo se transforma, tudo muda`,
+Tudo se transforma, tudo muda
+
+C                               F
+Quando Ele vem, quando Ele vem
+G                               C
+Quando Ele vem, quando Ele vem`,
         criadaEm: agora,
         atualizadaEm: agora
       },
@@ -214,7 +224,15 @@ Tudo se transforma, tudo muda`,
         instrumento: 'Guitarra',
         tom: 'Bbm',
         slug: 'oficina-g3-te-escolhi',
-        cifra: `Bbm                     Ab
+        cifra: `Intro:
+E|------------------------|
+B|------------------------|
+G|------------------------|
+D|---4-3------------------|
+A|-------4----------------|
+E|---------6--------------|
+
+Bbm                     Ab
 Você já me procurou
          Gb
 Por muitas vezes tentou
@@ -317,6 +335,7 @@ Eu sofri  por você
 ( Db  Ab  Bbm  Gb )
 ( Db  Ab  Bbm  Gb )
 
+Final:
 Db           Ab
 Te escolhi, te busquei
 Bbm                Gb

@@ -43,12 +43,14 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     cifraTrabalhada = transporCifra(cifraTrabalhada, transposicao);
   }
 
-  // Função para detectar se uma linha é tablatura
+  // Função para detectar se uma linha é tablatura - mais precisa
   function isTabLine(line: string): boolean {
-    const tabPattern = /^[EADGBEeadgbe]\|.*\|/;
+    const trimmed = line.trim();
+    const tabStartPattern = /^[EADGBEeadgbe][0-9]*\|/;
     const numberPattern = /\d+/;
     const pipePattern = /\|.*\|/;
-    return (tabPattern.test(line) || pipePattern.test(line)) && numberPattern.test(line);
+    
+    return tabStartPattern.test(trimmed) && numberPattern.test(trimmed) && pipePattern.test(trimmed);
   }
 
   // Função para detectar se uma linha contém apenas acordes
@@ -57,19 +59,19 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     if (!trimmed) return false;
     
     const parts = trimmed.split(/\s+/);
-    return parts.every(part => /^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part));
+    return parts.every(part => /^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part));
   }
 
   // Parsea cifra para destacar acordes e tablaturas
   function renderLinha(l: string, idx: number) {
-    // Se for uma linha de tablatura, renderizar com estilo discreto
+    // Se for uma linha de tablatura, renderizar sem destaque excessivo
     if (isTabLine(l)) {
       return (
         <div key={idx} className="whitespace-pre" style={{ fontFamily: 'Roboto Mono, monospace' }}>
           <span 
             style={{ fontSize: fontSize * 0.9 + "px" }}
             dangerouslySetInnerHTML={{
-              __html: l.replace(/(\d+)/g, '<span style="color: #2563eb; font-weight: 600;">$1</span>')
+              __html: l.replace(/(\d+)/g, '<span style="color: #2563eb; font-weight: 500;">$1</span>')
             }}
           />
         </div>
@@ -84,7 +86,7 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
             if (/^\s+$/.test(part)) {
               return <span key={j}>{part}</span>;
             }
-            if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part.trim()) && part.trim()) {
+            if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part.trim()) && part.trim()) {
               return (
                 <span
                   key={j}
@@ -104,10 +106,20 @@ export function CifraTransposer({ cifra, tomOriginal, fontSize }: Props) {
     // Para linhas mistas (acordes + letra), destacar acordes no meio do texto
     return (
       <div key={idx} className="whitespace-pre-wrap leading-snug" style={{ fontFamily: 'Roboto Mono, monospace' }}>
-        {l.split(/(\b[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?)\b/i).map((part, j) => {
-          // Se a parte é um acorde, destacar
-          if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)?(?:\([0-9#b]+\))?(?:\/[A-G][#b]?)?$/i.test(part) && part.trim() && 
-              !/(do|re|mi|fa|sol|la|si|de|em|no|na|se|te|me|le|ne|pe|ve|ce|ge|he|je|ke|que|como|para|pela|pelo|este|esta|esse|essa|onde|quando|porque|antes|depois|sobre|entre|contra|desde|ate|durante|atraves|casa|dia|ano|mes|vez|bem|mal|sim|nao|mas|seu|sua|meu|minha|nosso|nossa|dele|dela|deles|delas)/i.test(part)) {
+        {l.split(/(\b[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?)\b/i).map((part, j) => {
+          const partLower = part.toLowerCase();
+          const palavrasComuns = [
+            'amém', 'amor', 'bem', 'casa', 'deus', 'dia', 'ele', 'ela', 'em', 'eu', 'me', 'meu', 'minha',
+            'no', 'na', 'nos', 'nas', 'do', 'da', 'dos', 'das', 'de', 'se', 'te', 'le', 'ne', 'pe', 've',
+            'ce', 'ge', 'he', 'je', 'ke', 'que', 'como', 'para', 'pela', 'pelo', 'este', 'esta', 'esse',
+            'essa', 'onde', 'quando', 'porque', 'antes', 'depois', 'sobre', 'entre', 'contra', 'desde',
+            'ate', 'até', 'durante', 'atraves', 'através', 'casa', 'ano', 'mes', 'mês', 'vez', 'mal',
+            'sim', 'não', 'nao', 'mas', 'seu', 'sua', 'nosso', 'nossa', 'dele', 'dela', 'deles', 'delas'
+          ];
+
+          // Se a parte é um acorde válido E não é uma palavra comum, destacar
+          if (/^[A-G][#b]?(?:m|maj|min|dim|aug|sus[24]?|add[0-9]+|[0-9]+|M)*(?:\([0-9#b,/]+\))?(?:\/[A-G][#b]?)?$/i.test(part) && 
+              part.trim() && !palavrasComuns.includes(partLower)) {
             return (
               <span
                 key={j}
