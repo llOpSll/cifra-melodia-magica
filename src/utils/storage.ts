@@ -9,7 +9,7 @@ export {
   getCifraBySlug,
   salvarCifra,
   atualizarCifra,
-  deletarCifra,
+  deletarCifra as deletarCifraOriginal,
   loadFileBasedCifras,
   criarVersaoEditavel,
   inicializarDadosExemplo
@@ -36,10 +36,11 @@ export {
   removerCifraDeRepertorios
 } from './repertorios/repertoriosStorage';
 
-// Atualizar função deletarCifra para usar a nova função
+// Importar funções necessárias para o wrapper
 import { deletarCifra as deletarCifraOriginal } from './cifras/cifrasStorage';
 import { removerCifraDeRepertorios } from './repertorios/repertoriosStorage';
 
+// Wrapper da função deletarCifra que também remove de repertórios
 export function deletarCifra(id: string): boolean {
   const resultado = deletarCifraOriginal(id);
   
