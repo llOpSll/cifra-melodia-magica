@@ -1,3 +1,4 @@
+
 import { Cifra } from './storage';
 import slugify from 'slugify';
 
@@ -102,25 +103,30 @@ export function parseCifraFile(filename: string, content: string): Cifra {
   };
 }
 
-// Função para carregar cifras dos arquivos
+// Função para carregar cifras dos arquivos dinamicamente
 export async function loadCifrasFromFiles(): Promise<Cifra[]> {
   const cifras: Cifra[] = [];
   
   try {
-    // Lista de arquivos conhecidos no diretório CIFRAS
-    const arquivos = [
-      'morada-so-tu-es-santo.txt',
-      'oficina-g3-te-escolhi.txt',
-      'fernandinho-uma-nova-historia.txt'
-    ];
+    console.log('Carregando lista de cifras...');
+    const response = await fetch('/CIFRAS/lista.json');
+    
+    if (!response.ok) {
+      console.log('Arquivo lista.json não encontrado, usando lista padrão');
+      return [];
+    }
 
-    for (const arquivo of arquivos) {
+    const lista: string[] = await response.json();
+    console.log(`Encontrados ${lista.length} arquivos de cifra para carregar`);
+
+    for (const arquivo of lista) {
       try {
-        const response = await fetch(`/CIFRAS/${arquivo}`);
-        if (response.ok) {
-          const content = await response.text();
+        const responseCifra = await fetch(`/CIFRAS/${arquivo}`);
+        if (responseCifra.ok) {
+          const content = await responseCifra.text();
           const cifra = parseCifraFile(arquivo, content);
           cifras.push(cifra);
+          console.log(`Cifra carregada: ${cifra.artista} - ${cifra.titulo}`);
         }
       } catch (error) {
         console.log(`Erro ao carregar ${arquivo}:`, error);
@@ -130,5 +136,6 @@ export async function loadCifrasFromFiles(): Promise<Cifra[]> {
     console.log('Erro ao carregar cifras dos arquivos:', error);
   }
 
+  console.log(`Total de ${cifras.length} cifras carregadas dos arquivos`);
   return cifras;
 }

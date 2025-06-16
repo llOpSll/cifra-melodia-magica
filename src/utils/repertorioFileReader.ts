@@ -29,6 +29,7 @@ export async function loadRepertoriosFromFiles(): Promise<RepertorioFile[]> {
 
     const lista: string[] = await response.json();
     const repertoriosCarregados: RepertorioFile[] = [];
+    console.log(`Encontrados ${lista.length} arquivos de repertório para carregar`);
 
     for (const nomeArquivo of lista) {
       try {
@@ -38,6 +39,7 @@ export async function loadRepertoriosFromFiles(): Promise<RepertorioFile[]> {
           // Adicionar prefixo 'file-' ao ID para distinguir de repertórios locais
           repertorio.id = `file-${repertorio.id}`;
           repertoriosCarregados.push(repertorio);
+          console.log(`Repertório carregado: ${repertorio.nome}`);
         }
       } catch (error) {
         console.log(`Erro ao carregar repertório ${nomeArquivo}:`, error);

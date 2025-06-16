@@ -1,0 +1,12 @@
+
+{
+  "id": "exemplo-1",
+  "nome": "Repertório de Exemplo",
+  "cifras": [
+    "file-morada-so-tu-es-santo.txt",
+    "file-oficina-g3-te-escolhi.txt",
+    "file-fernandinho-uma-nova-historia.txt"
+  ],
+  "criadoEm": "2024-01-01T00:00:00.000Z",
+  "atualizadoEm": "2024-01-01T00:00:00.000Z"
+}
