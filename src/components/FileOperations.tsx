@@ -80,16 +80,17 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap gap-3 items-center">
+    <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 items-stretch sm:items-center">
       <Button
         onClick={handleExportarTodas}
         variant="outline"
         size="sm"
-        className="flex items-center gap-2"
+        className="flex items-center justify-center gap-2 text-xs sm:text-sm"
         disabled={cifras.length === 0}
       >
-        <Download size={16} />
-        Exportar Todas ({cifras.length})
+        <Download size={14} className="sm:w-4 sm:h-4" />
+        <span className="hidden sm:inline">Exportar Todas ({cifras.length})</span>
+        <span className="sm:hidden">Exportar ({cifras.length})</span>
       </Button>
       
       <div className="relative">
@@ -105,24 +106,31 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 w-full text-xs sm:text-sm"
           disabled={importando}
           asChild
         >
           <label htmlFor="importar-cifras" className="cursor-pointer">
-            <Upload size={16} />
-            {importando ? 'Importando...' : 'Importar TXT'}
+            <Upload size={14} className="sm:w-4 sm:h-4" />
+            {importando ? 'Importando...' : (
+              <>
+                <span className="hidden sm:inline">Importar TXT</span>
+                <span className="sm:hidden">Importar</span>
+              </>
+            )}
           </label>
         </Button>
       </div>
       
-      <div className="text-xs text-gray-500 flex items-center gap-1">
-        <FileText size={12} />
-        Formato: artista:, titulo:, tom:, cifra
+      <div className="text-xs text-gray-500 flex items-center gap-1 justify-center sm:justify-start">
+        <FileText size={10} className="sm:w-3 sm:h-3" />
+        <span className="hidden lg:inline">Formato: artista:, titulo:, tom:, cifra</span>
+        <span className="lg:hidden">Formato TXT</span>
       </div>
       
-      <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-        ⚠️ Importação em massa não disponível no iPad 2
+      <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded text-center">
+        <span className="hidden sm:inline">⚠️ Importação em massa não disponível no iPad 2</span>
+        <span className="sm:hidden">⚠️ Não disponível no iPad 2</span>
       </div>
     </div>
   );
