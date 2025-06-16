@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { CifraCard } from "../components/CifraCard";
 import { FileOperations } from "../components/FileOperations";
 import { Link } from "react-router-dom";
-import { Music, List } from "lucide-react";
-import { getCifras, inicializarDadosExemplo, loadFileBasedCifras } from "../utils/storage";
+import { Music, List, Trash2 } from "lucide-react";
+import { getCifras, inicializarDadosExemplo, loadFileBasedCifras, limparTodosDados } from "../utils/storage";
+import { toast } from "@/hooks/use-toast";
 
 export default function Index() {
   const [busca, setBusca] = useState("");
@@ -18,7 +19,7 @@ export default function Index() {
       // Carregar cifras dos arquivos primeiro
       await loadFileBasedCifras();
       
-      // Inicializar dados de exemplo se necessário
+      // Inicializar dados de exemplo se necessário (agora vazio para produção)
       inicializarDadosExemplo();
       
       // Atualizar estado com todas as cifras
@@ -31,6 +32,17 @@ export default function Index() {
 
   function handleCifrasUpdated() {
     setCifras(getCifras());
+  }
+
+  function handleLimparTodosDados() {
+    if (confirm('Tem certeza que deseja limpar TODOS os dados? Esta ação não pode ser desfeita.')) {
+      limparTodosDados();
+      setCifras(getCifras());
+      toast({
+        title: "Todos os dados foram limpos!",
+        description: "O app foi resetado para o estado inicial.",
+      });
+    }
   }
 
   const cifrasFiltradas = cifras.filter(
@@ -88,7 +100,16 @@ export default function Index() {
         
         {/* Operações de arquivo */}
         <div className="bg-white/80 rounded-lg p-4 border border-green-100">
-          <FileOperations cifras={cifras} onCifrasUpdated={handleCifrasUpdated} />
+          <div className="flex items-center justify-between">
+            <FileOperations cifras={cifras} onCifrasUpdated={handleCifrasUpdated} />
+            <button
+              onClick={handleLimparTodosDados}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+            >
+              <Trash2 size={16} />
+              Limpar Todos os Dados
+            </button>
+          </div>
         </div>
       </div>
 
@@ -97,7 +118,28 @@ export default function Index() {
           cifrasFiltradas.map(cifra => <CifraCard key={cifra.id} cifra={cifra} />)
         ) : (
           <div className="col-span-full text-lg text-center" style={{ color: '#7F8CAA' }}>
-            Nenhuma cifra encontrada.
+            <div className="bg-white/80 rounded-lg p-8 border border-gray-200">
+              <h3 className="text-xl font-bold mb-4" style={{ color: '#333447' }}>
+                Bem-vindo ao CifrasApp!
+              </h3>
+              <p className="mb-4">
+                Seu aplicativo está pronto para uso em produção.
+              </p>
+              <div className="flex flex-col gap-3 items-center">
+                <Link
+                  to="/nova"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all"
+                >
+                  + Criar sua primeira cifra
+                </Link>
+                <Link
+                  to="/repertorios/novo"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-all"
+                >
+                  + Criar seu primeiro repertório
+                </Link>
+              </div>
+            </div>
           </div>
         )}
       </section>

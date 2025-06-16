@@ -146,15 +146,17 @@ export function criarVersaoEditavel(cifraOriginal: Cifra): string {
   return novaCifra.id;
 }
 
+// Função removida - não criar mais dados de exemplo
 export function inicializarDadosExemplo() {
-  const cifras = getCifrasFromLocalStorage();
-  
-  // Se já há cifras no localStorage, não fazer nada
-  if (cifras.length > 0) {
-    return;
-  }
-  
-  // Só adicionar exemplos se não há cifras no localStorage
-  // As cifras dos arquivos já serão carregadas automaticamente
-  console.log('Cifras dos arquivos carregadas. Exemplos do localStorage não são mais necessários.');
+  // App em produção - sem dados de exemplo
+  console.log('App em produção - sem dados de exemplo');
+}
+
+// Nova função para limpar todos os dados
+export function limparTodosDados(): void {
+  localStorage.removeItem(CIFRAS_KEY);
+  localStorage.removeItem('cifras_app_cifras_ocultas');
+  localStorage.removeItem('cifras_app_cifras_excluidas');
+  localStorage.removeItem('cifras_app_repertorios');
+  console.log('Todos os dados foram limpos');
 }
