@@ -12,7 +12,8 @@ export {
   deletarCifra as deletarCifraOriginal,
   loadFileBasedCifras,
   criarVersaoEditavel,
-  inicializarDadosExemplo
+  inicializarDadosExemplo,
+  limparTodosDados
 } from './cifras/cifrasStorage';
 
 // Visibilidade das cifras
