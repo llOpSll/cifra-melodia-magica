@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
-import { Download, Upload, FileText } from 'lucide-react';
+import { Download, Upload, FileText, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
-import { Cifra, getCifras, salvarCifra } from '../utils/storage';
+import { Cifra, getCifras, loadFileBasedCifras } from '../utils/storage';
 import { exportarCifra, exportarTodasCifras, importarCifra } from '../utils/fileOperations';
+import { uploadCifraToServer, refreshCifrasList } from '../utils/uploadService';
 import { toast } from '@/hooks/use-toast';
-import slugify from 'slugify';
 
 interface Props {
   cifras: Cifra[];
@@ -14,6 +14,7 @@ interface Props {
 
 export function FileOperations({ cifras, onCifrasUpdated }: Props) {
   const [importando, setImportando] = useState(false);
+  const [atualizandoLista, setAtualizandoLista] = useState(false);
 
   function handleExportarTodas() {
     if (cifras.length === 0) {
@@ -41,19 +42,27 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
     for (const file of Array.from(files)) {
       try {
         const cifra = await importarCifra(file);
-        const slug = slugify(`${cifra.artista}-${cifra.titulo}`, { lower: true, strict: true });
         
-        salvarCifra({
-          artista: cifra.artista,
-          titulo: cifra.titulo,
-          instrumento: cifra.instrumento,
-          tom: cifra.tom,
-          cifra: cifra.cifra,
-          slug,
-          capotraste: cifra.capotraste
-        });
+        // Criar conteúdo formatado para o arquivo
+        const conteudoFormatado = `Artista: ${cifra.artista}
+Título: ${cifra.titulo}
+Instrumento: ${cifra.instrumento}
+Tom: ${cifra.tom}
+Capotraste: ${cifra.capotraste || 0}
+BPM: ${cifra.bpm || ''}
+VideoYoutube: ${cifra.videoYoutube || ''}
+
+${cifra.cifra}`;
+
+        // Fazer upload para o servidor
+        const nomeArquivo = `${cifra.artista.replace(/[^a-zA-Z0-9\s]/g, '').trim()} - ${cifra.titulo.replace(/[^a-zA-Z0-9\s]/g, '').trim()}.txt`;
+        const uploadSucesso = await uploadCifraToServer(conteudoFormatado, nomeArquivo);
         
-        sucessos++;
+        if (uploadSucesso) {
+          sucessos++;
+        } else {
+          erros++;
+        }
       } catch (error) {
         console.error('Erro ao importar arquivo:', file.name, error);
         erros++;
@@ -64,19 +73,46 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
     
     if (sucessos > 0) {
       toast({
-        title: `${sucessos} cifra(s) importada(s) com sucesso!`,
-        description: erros > 0 ? `${erros} arquivo(s) falharam na importação.` : undefined,
+        title: `${sucessos} cifra(s) enviada(s) para o servidor!`,
+        description: erros > 0 ? `${erros} arquivo(s) falharam no upload. Atualize a lista para ver as cifras.` : "Atualize a lista para ver as novas cifras.",
       });
-      onCifrasUpdated();
     } else {
       toast({
-        title: "Erro ao importar cifras",
-        description: "Verifique se os arquivos estão no formato correto.",
+        title: "Erro ao enviar cifras",
+        description: "Verifique se os arquivos estão no formato correto e se o servidor está funcionando.",
       });
     }
 
     // Limpar input
     event.target.value = '';
+  }
+
+  async function handleAtualizarLista() {
+    setAtualizandoLista(true);
+    
+    try {
+      // Atualizar lista no servidor
+      await refreshCifrasList();
+      
+      // Recarregar cifras dos arquivos
+      await loadFileBasedCifras();
+      
+      // Atualizar UI
+      onCifrasUpdated();
+      
+      toast({
+        title: "Lista atualizada!",
+        description: "As novas cifras já estão disponíveis.",
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar lista:', error);
+      toast({
+        title: "Erro ao atualizar lista",
+        description: "Tente novamente em alguns segundos.",
+      });
+    }
+    
+    setAtualizandoLista(false);
   }
 
   return (
@@ -112,15 +148,36 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
         >
           <label htmlFor="importar-cifras" className="cursor-pointer">
             <Upload size={14} className="sm:w-4 sm:h-4" />
-            {importando ? 'Importando...' : (
+            {importando ? 'Enviando...' : (
               <>
-                <span className="hidden sm:inline">Importar TXT</span>
-                <span className="sm:hidden">Importar</span>
+                <span className="hidden sm:inline">Enviar para Servidor</span>
+                <span className="sm:hidden">Enviar</span>
               </>
             )}
           </label>
         </Button>
       </div>
+
+      <Button
+        onClick={handleAtualizarLista}
+        variant="outline"
+        size="sm"
+        className="flex items-center justify-center gap-2 text-xs sm:text-sm"
+        disabled={atualizandoLista}
+      >
+        <RefreshCw size={14} className={`sm:w-4 sm:h-4 ${atualizandoLista ? 'animate-spin' : ''}`} />
+        {atualizandoLista ? (
+          <>
+            <span className="hidden sm:inline">Atualizando...</span>
+            <span className="sm:hidden">Atualizando</span>
+          </>
+        ) : (
+          <>
+            <span className="hidden sm:inline">Atualizar Lista</span>
+            <span className="sm:hidden">Atualizar</span>
+          </>
+        )}
+      </Button>
       
       <div className="text-xs text-gray-500 flex items-center gap-1 justify-center sm:justify-start">
         <FileText size={10} className="sm:w-3 sm:h-3" />
@@ -128,9 +185,9 @@ export function FileOperations({ cifras, onCifrasUpdated }: Props) {
         <span className="lg:hidden">Formato TXT</span>
       </div>
       
-      <div className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded text-center">
-        <span className="hidden sm:inline">⚠️ Importação em massa não disponível no iPad 2</span>
-        <span className="sm:hidden">⚠️ Não disponível no iPad 2</span>
+      <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded text-center">
+        <span className="hidden sm:inline">📤 Arquivos enviados ficam disponíveis para todos</span>
+        <span className="sm:hidden">📤 Compartilhado</span>
       </div>
     </div>
   );
